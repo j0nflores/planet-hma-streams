@@ -50,10 +50,7 @@ def main():
         means = get_score_means(y_test,y_pred,w_test)
         print(f'\nPostprocessing time: {(time.time() - start_train)/60:0.2f} min')
 
-        #Write files
-        pd.DataFrame(scores).to_csv(f'./log/{run_name}/metrics_{modeln}.csv')
-        means.to_csv(f'./log/{run_name}/means_{modeln}.csv')
-        
+        #Write files        
         cms = cm_score(y_test,y_pred,'binary')
         np.save(f'./log/{run_name}/cm_{modeln}.npy', cms, allow_pickle=True)
         get_scores_df(cms).to_csv(f'./log/{run_name}/metrics_{modeln}.csv')
