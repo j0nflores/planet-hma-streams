@@ -22,7 +22,7 @@ def main():
     rand = int(os.environ['SLURM_ARRAY_TASK_ID'])
 
     #Setup log names
-    run_name = f'cv_wconst' #'hma_b16lr5e500'
+    run_name = f'cv_wconst' 
     modeln =  run_name+f'_{rand}'
     os.makedirs(f"./log/{run_name}/",exist_ok=True)
     print(modeln)
@@ -96,17 +96,13 @@ def main():
         print('\t pred: ',y_pred.shape)
         print('\t weights: ',w_test.shape)
 
-        #Get scores 
-        scores = get_scores(y_test,y_pred,None,w_test)   
-        means = get_score_means(y_test,y_pred,w_test)
-        print(f'\nPostprocessing time: {(time.time() - start_train)/60:0.2f} min')
-
-        #Write files
-        pd.DataFrame(scores).to_csv(f'./log/{run_name}/metrics_{k_class}_{modeln}.csv')
-        means.to_csv(f'./log/{run_name}/means_{k_class}_{modeln}.csv')
-        #np.save(f'./log/{run_name}/{modeln}.npy',get_cm(y_test,y_pred,w_test,'multi'), allow_pickle=True)
+        #Get scores     
+        cms = cm_score(y_test,y_pred,k_class)
+        np.save(f'./log/{run_name}/cm_{modeln}.npy', cms, allow_pickle=True)
+        get_scores_df(cms).to_csv(f'./log/{run_name}/metrics_{modeln}.csv')
         
-
+        
+        print(f'\nPostprocessing time: {(time.time() - start_train)/60:0.2f} min')
 
 
 if __name__ == "__main__":

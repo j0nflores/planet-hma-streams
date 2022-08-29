@@ -14,7 +14,7 @@ def main():
     rand = int(os.environ['SLURM_ARRAY_TASK_ID'])
     
     #thresholding method (simple or otsu)
-    method = 'simple'
+    method = 'otsu'
 
     #Setup directory
     imgs_path = '/work/jflores_umass_edu/data/planet/3k_new/imgs/'
@@ -45,12 +45,7 @@ def main():
         y_test,y_pred = pred_array(y_test,y_pred,'binary') 
         
         
-        #Get scores 
-        scores = get_scores(y_test,y_pred,None,w_test)   
-        means = get_score_means(y_test,y_pred,w_test)
-        print(f'\nPostprocessing time: {(time.time() - start_train)/60:0.2f} min')
-
-        #Write files        
+        #Get scores       
         cms = cm_score(y_test,y_pred,'binary')
         np.save(f'./log/{run_name}/cm_{modeln}.npy', cms, allow_pickle=True)
         get_scores_df(cms).to_csv(f'./log/{run_name}/metrics_{modeln}.csv')
