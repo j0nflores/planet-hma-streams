@@ -1,0 +1,21 @@
+name: planetriver
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - h5py
+  - geopandas
+  - opencv=4.5.3
+  - gdal=3.3.3
+  - python=3.8.8
+  - jupyterlab=3.3.2
+  - scikit-image=0.19.2
+  - cudatoolkit=10.1.243
+  - cudnn=7.6.5
+  - pip:
+    - pandas
+    - pillow
+    - rasterio==1.2.10
+    - tensorflow-gpu==2.4.1
+prefix: /work/jflores_umass_edu/venv/envs/planetriver
