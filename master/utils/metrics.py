@@ -26,8 +26,9 @@ def cm_score(true,pred,k_class):
         dict[i] = cv_cm[i].ravel() # array: tn, fp, fn, tp
     return dict
 
-#  Classification metrics (Tharwat, 2018)
+
 def metrics(cm_array):
+    '''Classification metrics (Tharwat, 2018)'''
     dict = {}
     tn, fp, fn, tp = cm_array.ravel()
     precision = tp / (tp+fp)
