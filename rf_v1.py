@@ -15,14 +15,14 @@ def main():
     ap.add_argument("-r", "--random", type=int, default=22, help="random data")
     args = vars(ap.parse_args())'''
     
-    tree = 100 #int(os.environ['SLURM_ARRAY_TASK_ID']) #args["trees"]
-    depth = int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["depth"]
-    rand = 1 #int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["random"]
+    tree = 200 #int(os.environ['SLURM_ARRAY_TASK_ID']) #args["trees"]
+    depth = 9 # int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["depth"]
+    rand = int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["random"]
     
     
     #Setup log names
-    run_name = f'rf_d'
-    modeln =  run_name+f'_{depth}'
+    run_name = f'rf'
+    modeln =  run_name+f'_{rand}'
     
     #Set configs
     k_class = 'multi' #binary or multi
@@ -49,10 +49,10 @@ def main():
         # Fit model to training data - train on k_class == 'multi'
         start_train = time.time()
         rf = get_rf(X_train,y_train,tree, depth)   #(X_train,y_train)
-        '''with open(f'./log/{run_name}/{modeln}.pkl','wb') as f:
+        with open(f'./log/{run_name}/{modeln}.pkl','wb') as f:
             pickle.dump(rf,f)
         np.save(f'./log/{run_name}/importance_{modeln}.npy', 
-                rf.feature_importances_, allow_pickle=True)   ''' 
+                rf.feature_importances_, allow_pickle=True)   
         print(f'\tTraining time: {(time.time() - start_train)/60:0.2f} min')
 
         '''#Load model (if already trained)
@@ -64,15 +64,12 @@ def main():
         y_pred = rf.predict(X_test)
         #y_test, y_pred = multi_to_binary(y_test, y_pred) #only for multi to binary test
             
-        #Get scores 
-        scores = get_scores(y_test,y_pred,None,w_test)   
-        means = get_score_means(y_test,y_pred,w_test)
+        #Get scores     
+        cms = cm_score(y_test,y_pred,k_class)
+        np.save(f'./log/{run_name}/cm_{k_class}_{modeln}.npy', cms, allow_pickle=True)
+        get_scores_df(cms).to_csv(f'./log/{run_name}/metrics_{k_class}_{modeln}.csv')
+        
         print(f'\nPostprocessing time: {(time.time() - start_train)/60:0.2f} min')
-
-        #Write files
-        pd.DataFrame(scores).to_csv(f'./log/{run_name}/metrics_{k_class}_{modeln}.csv')
-        means.to_csv(f'./log/{run_name}/means_{k_class}_{modeln}.csv')
-        #plot_rf_importance(f'./log/{run_name}/importance_{modeln}.png', rf)
         
 
 if __name__ == "__main__":

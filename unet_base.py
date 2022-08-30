@@ -22,20 +22,22 @@ def main():
     rand = int(os.environ['SLURM_ARRAY_TASK_ID'])
 
     #Setup log names
-    run_name = f'cv_wconst' 
+    run_name = f'cv_ub' 
     modeln =  run_name+f'_{rand}'
     os.makedirs(f"./log/{run_name}/",exist_ok=True)
     print(modeln)
 
-    #Setup directory 
-    imgs_path = '/work/jflores_umass_edu/data/planet/3k_new/imgs/'
-    masks_path = '/work/jflores_umass_edu/data/planet/3k_new/masks/'
 
     #Set configs
-    k_class = 'multi' #binary or multi
+    k_class = 'binary' #binary or multi
     batch_size = 8
     filt = 64
 
+    
+    #Setup directory 
+    imgs_path = '/work/jflores_umass_edu/data/planet/3k_new/imgs/'
+    masks_path = '/work/jflores_umass_edu/data/planet/3k_new/masks/'
+    
 
     with tf.device('/CPU:0'):
         #Preprocess dataset
@@ -46,11 +48,6 @@ def main():
         print(f"\ttrain_masks size: {getsizeof(y_train)/1000000:.2f} MB")
         print(f'\nProcessing time: {(time.time() - start_train)/60:0.2f} min')
 
-
-        #Calculate weights -(imbalanced data)
-        w_train = get_weights(y_train,k_class) 
-        w_test = get_weights(y_test,k_class)
-        print('\n\tweights shape (train set): ',w_train.shape)
 
         
         '''#Prepare tf dataset
@@ -90,17 +87,11 @@ def main():
         #!!! for multi to binary test only
         if k_class == 'binary':
             y_test, y_pred = multi_to_binary(y_test, y_pred) 
-
-        #Check arrays
-        print('\t true: ',y_test.shape)
-        print('\t pred: ',y_pred.shape)
-        print('\t weights: ',w_test.shape)
-
+     
         #Get scores     
         cms = cm_score(y_test,y_pred,k_class)
-        np.save(f'./log/{run_name}/cm_{modeln}.npy', cms, allow_pickle=True)
-        get_scores_df(cms).to_csv(f'./log/{run_name}/metrics_{modeln}.csv')
-        
+        np.save(f'./log/{run_name}/cm_{k_class}_{modeln}.npy', cms, allow_pickle=True)
+        get_scores_df(cms).to_csv(f'./log/{run_name}/metrics_{k_class}_{modeln}.csv')
         
         print(f'\nPostprocessing time: {(time.time() - start_train)/60:0.2f} min')
 
