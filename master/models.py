@@ -45,7 +45,7 @@ def get_rf(X,y,tree=100,depth=5,weight=None):
     
 
 def unet(filter=64,kernel=3,input_size=(512,512,3),nclass=3):
-    
+    '''Build U-Net model'''
     #Contraction Path
     inputs = Input(input_size)
     c1,p1 = conv_block(filter,kernel,inputs,step=1)
