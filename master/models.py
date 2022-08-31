@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from skimage.filters import threshold_otsu
+from .utils import threshold_otsu
 from sklearn.ensemble import RandomForestClassifier
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.optimizers import Adam
@@ -31,16 +31,15 @@ def get_threshold(X,y, method='simple'):
     return true_array, pred_array
     
 def get_ndwi(X):
+    np.seterr(divide='ignore', invalid='ignore') #ignore nan pixel division
     green,red,nir = cv2.split(X)
-    np.seterr(divide='ignore', invalid='ignore')
     ndwi = (green - nir) / (green + nir)
-    ndwi[np.isnan(ndwi)] = -1 
     return ndwi
 
-def get_rf(X,y,tree=100,depth=None):
+def get_rf(X,y,tree=100,depth=5,weight=None):
     rf = RandomForestClassifier(n_estimators=tree, 
                                 max_depth=depth, oob_score=True, 
-                                class_weight={0:0.05, 1:0.35, 2:0.60},random_state=0)
+                                class_weight=weight,random_state=0) 
     rf = rf.fit(X, y)
     return rf
     

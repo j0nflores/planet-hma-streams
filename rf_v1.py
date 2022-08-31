@@ -15,23 +15,25 @@ def main():
     ap.add_argument("-r", "--random", type=int, default=22, help="random data")
     args = vars(ap.parse_args())'''
     
-    tree = 200 #int(os.environ['SLURM_ARRAY_TASK_ID']) #args["trees"]
-    depth = 9 # int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["depth"]
+    tree = 100 #int(os.environ['SLURM_ARRAY_TASK_ID']) #args["trees"]
+    depth = 7 # int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["depth"]
     rand = int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["random"]
     
     
     #Setup log names
-    run_name = f'rf'
+    run_name = f'rf_wc_t{tree}d{depth}'
     modeln =  run_name+f'_{rand}'
     
     #Set configs
     k_class = 'multi' #binary or multi
+    weights = {0:0.05, 1:0.35, 2:0.60}
     
     #Setup directory
     imgs_path = '/work/jflores_umass_edu/data/planet/3k_new/imgs/'
     masks_path = '/work/jflores_umass_edu/data/planet/3k_new/masks/'
     os.makedirs(f"./log/{run_name}/",exist_ok=True)
     print(run_name)
+    print('weights: ',weights)
     
     with tf.device('/CPU:0'):
         
@@ -43,12 +45,9 @@ def main():
         print(f'\tPreprocessing time: {(time.time() - start_train)/60:0.2f} min')
         
         
-        #Calculate weights -(imbalanced data)
-        w_test = get_weights_rf(y_test,k_class)
-        
         # Fit model to training data - train on k_class == 'multi'
         start_train = time.time()
-        rf = get_rf(X_train,y_train,tree, depth)   #(X_train,y_train)
+        rf = get_rf(X_train,y_train,tree, depth,weights)   
         with open(f'./log/{run_name}/{modeln}.pkl','wb') as f:
             pickle.dump(rf,f)
         np.save(f'./log/{run_name}/importance_{modeln}.npy', 

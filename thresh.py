@@ -35,15 +35,10 @@ def main():
         print(f"train_masks size: {getsizeof(y_train)/1000000:.2f} MB")
         print(f'\nProcessing time: {(time.time() - start_train)/60:0.2f} min')
 
-        #Calculate weights -(imbalanced data)
-        w_train = get_weights(y_train,'binary')
-        w_test = get_weights(y_test,'binary')
-
         #Run thresholding
         start_train = time.time()
         y_test,y_pred = get_threshold(X_test,y_test, method=method)
         y_test,y_pred = pred_array(y_test,y_pred,'binary') 
-        
         
         #Get scores       
         cms = cm_score(y_test,y_pred,'binary')
