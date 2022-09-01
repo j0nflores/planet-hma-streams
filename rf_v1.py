@@ -25,7 +25,7 @@ def main():
     modeln =  run_name+f'_{rand}'
     
     #Set configs
-    k_class = 'multi' #binary or multi
+    k_class = 'binary' #binary or multi
     weights = {0:0.05, 1:0.35, 2:0.60}
     
     #Setup directory
@@ -45,18 +45,18 @@ def main():
         print(f'\tPreprocessing time: {(time.time() - start_train)/60:0.2f} min')
         
         
-        # Fit model to training data - train on k_class == 'multi'
+        '''# Fit model to training data - train on k_class == 'multi'
         start_train = time.time()
         rf = get_rf(X_train,y_train,tree, depth,weights)   
         with open(f'./log/{run_name}/{modeln}.pkl','wb') as f:
             pickle.dump(rf,f)
         np.save(f'./log/{run_name}/importance_{modeln}.npy', 
                 rf.feature_importances_, allow_pickle=True)   
-        print(f'\tTraining time: {(time.time() - start_train)/60:0.2f} min')
+        print(f'\tTraining time: {(time.time() - start_train)/60:0.2f} min')'''
 
-        '''#Load model (if already trained)
-        with open(f'/work/jflores_umass_edu/hma/log/{run_name}/{modeln}.pkl', 'rb') as f:
-            rf = pickle.load(f)'''
+        #Load model (if already trained)
+        with open(f'/work/jflores_umass_edu/hma2/log/{run_name}/{modeln}.pkl', 'rb') as f:
+            rf = pickle.load(f)
 
         #Predict and postprocess
         start_train = time.time()

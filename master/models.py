@@ -11,7 +11,7 @@ import tensorflow as tf
 
 
 def get_threshold(X,y, method='simple'):
-    true_array, pred_array = [],[]    
+    true_array, pred_array, th_otsu = [],[],[]    
     for i in range(len(X)):
 
         gray_image = get_ndwi(X[i])
@@ -20,15 +20,22 @@ def get_threshold(X,y, method='simple'):
             th = gray_image > 0 #threshold (Xu, 2006, Huang et al., 2018)
             
         elif method == 'otsu':
-            th = threshold_otsu(gray_image)
-            th = gray_image > th
+            th_val = threshold_otsu(gray_image)
+            th = gray_image > th_val
+            th_otsu.append(th_val)
         
         true_array.append(y[i])
         pred_array.append(th)
-
+        
     true_array = np.stack(true_array)
     pred_array = np.stack(pred_array)[:,:,:,np.newaxis]
-    return true_array, pred_array
+    
+    if method == 'simple':
+        return true_array, pred_array
+    
+    elif method == 'otsu':
+        
+        return true_array, pred_array, th_otsu
     
 def get_ndwi(X):
     np.seterr(divide='ignore', invalid='ignore') #ignore nan pixel division

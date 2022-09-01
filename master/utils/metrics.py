@@ -122,3 +122,19 @@ def ci(val):
                            scale=st.sem(val))
     return np.mean(val)-low
 
+#aggregate results
+def df_tab(df):
+    dict = {}
+    cl = df.Class.unique()
+    for i,c in enumerate(cl):
+        dict[c] = df[df.Class==c].groupby(['Method','Metric']).mean().T
+        #dict[c].index = ['c']
+        dict[f'{c}_ci'] = df[df.Class==c].groupby(['Method','Metric']).agg(lambda x: ci(x).round(2)).T
+        dict[c].index = [f'{i} {c}']
+        dict[f'{c}_ci'].index = [f'{i+3} {c}_ci']
+        
+    df = pd.concat(dict.values())
+    df = df[df.columns[::-1]]
+    df = df.sort_index().round(2)
+    return df
+
