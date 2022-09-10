@@ -15,13 +15,16 @@ def get_scores_df(cms):
     df_out = pd.concat([df,df_means],axis=1).T
     return df_out
 
-def cm_score(true,pred,k_class):
+def cm_score(true,pred,k_class,m2b=False):
     dict = {}
     cv_cm = sklearn.metrics.multilabel_confusion_matrix(true,pred)
     if k_class == 'binary':
         nclass = 2
     elif k_class == 'multi':
-        nclass = 3
+        if m2b == False:
+            nclass = 3
+        else:
+            nclass = 2
     for i in range(nclass):
         dict[i] = cv_cm[i].ravel() # array: tn, fp, fn, tp
     return dict

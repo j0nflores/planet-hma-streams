@@ -15,25 +15,25 @@ def main():
     ap.add_argument("-r", "--random", type=int, default=22, help="random data")
     args = vars(ap.parse_args())'''
     
-    tree = 100 #int(os.environ['SLURM_ARRAY_TASK_ID']) #args["trees"]
-    depth = 7 # int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["depth"]
+    tree = 200 #int(os.environ['SLURM_ARRAY_TASK_ID']) #args["trees"]
+    depth = 9 # int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["depth"]
     rand = int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["random"]
     
     
     #Setup log names
-    run_name = f'rf_wc_t{tree}d{depth}'
-    modeln =  run_name+f'_{rand}'
+    run_name = f'rf_wc_t{tree}d{depth}'    
     
     #Set configs
-    k_class = 'binary' #binary or multi
-    weights = {0:0.05, 1:0.35, 2:0.60}
+    k_class = 'multi' #binary or multi
+    weights = {0:0.05, 1:0.25, 2:0.70} #'balanced' #
     
     #Setup directory
     imgs_path = '/work/jflores_umass_edu/data/planet/3k_new/imgs/'
     masks_path = '/work/jflores_umass_edu/data/planet/3k_new/masks/'
+    modeln =  run_name+f'_{rand}'
     os.makedirs(f"./log/{run_name}/",exist_ok=True)
     print(run_name)
-    print('weights: ',weights)
+    print('t ',tree, 'd ', depth, 'r ', rand, 'weights: ',weights)
     
     with tf.device('/CPU:0'):
         
@@ -45,23 +45,26 @@ def main():
         print(f'\tPreprocessing time: {(time.time() - start_train)/60:0.2f} min')
         
         
-        '''# Fit model to training data - train on k_class == 'multi'
+        # Fit model to training data - train on k_class == 'multi'
         start_train = time.time()
-        rf = get_rf(X_train,y_train,tree, depth,weights)   
+        rf = get_rf(X_train,y_train,tree, depth, weights)   
         with open(f'./log/{run_name}/{modeln}.pkl','wb') as f:
             pickle.dump(rf,f)
         np.save(f'./log/{run_name}/importance_{modeln}.npy', 
                 rf.feature_importances_, allow_pickle=True)   
-        print(f'\tTraining time: {(time.time() - start_train)/60:0.2f} min')'''
+        print(f'\tTraining time: {(time.time() - start_train)/60:0.2f} min')
 
-        #Load model (if already trained)
+        '''#Load model (if already trained)
         with open(f'/work/jflores_umass_edu/hma2/log/{run_name}/{modeln}.pkl', 'rb') as f:
-            rf = pickle.load(f)
+            rf = pickle.load(f)'''
 
         #Predict and postprocess
         start_train = time.time()
         y_pred = rf.predict(X_test)
-        #y_test, y_pred = multi_to_binary(y_test, y_pred) #only for multi to binary test
+        
+        #!!! for multi to binary test only
+        if k_class == 'binary':
+            y_test, y_pred = multi_to_binary(y_test, y_pred) #only for multi to binary test
             
         #Get scores     
         cms = cm_score(y_test,y_pred,k_class)

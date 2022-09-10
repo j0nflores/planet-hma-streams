@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
-from .utils import threshold_otsu
+from .utils import *
 from sklearn.ensemble import RandomForestClassifier
 from tensorflow.keras.models import Model, load_model
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.layers import *
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 from tensorflow.keras.metrics import *
@@ -51,14 +51,14 @@ def get_rf(X,y,tree=100,depth=5,weight=None):
     return rf
     
 
-def unet(filter=64,kernel=3,input_size=(512,512,3),nclass=3):
+def unet(filter=18,kernel=3,input_size=(512,512,3),nclass=3):
     '''Build U-Net model'''
     #Contraction Path
     inputs = Input(input_size)
     c1,p1 = conv_block(filter,kernel,inputs,step=1)
     c2,p2 = conv_block(filter,kernel,p1,step=2)
     c3,p3 = conv_block(filter,kernel,p2,step=4)
-    c4,p4 = conv_block(filter,kernel,p3,step=8)
+    c4,p4 = conv_block_drop(filter,kernel,p3,step=8)
     
     #Bottom
     bottom = bottom_block(filter,kernel,p4,step=16)
@@ -76,6 +76,7 @@ def unet(filter=64,kernel=3,input_size=(512,512,3),nclass=3):
     elif nclass > 1:
         activation = 'softmax'
         loss = 'categorical_crossentropy'
+    
     conv_out = Conv2D(nclass, 1, activation = activation)(uc4)
     
     #Compile model
@@ -90,6 +91,13 @@ def conv_block(filter,kernel,input,step=1):
     conv_step = conv(filter,kernel,step)(conv_step)
     p = MaxPooling2D(pool_size=(2, 2))(conv_step)
     return conv_step, p
+
+def conv_block_drop(filter,kernel,input,step=1):
+    conv_step = conv(filter,kernel,step)(input)
+    conv_step = conv(filter,kernel,step)(conv_step)
+    drop = Dropout(0.5)(conv_step)
+    p = MaxPooling2D(pool_size=(2, 2))(drop)
+    return drop, p
 
 def upconv_block(filter,kernel,input,concat,step=1):
     upconv = conv(filter,2,step)(UpSampling2D(size=(2,2))(input))
@@ -136,3 +144,14 @@ def monitor_unet(num_class):
             OneHotMeanIoU(num_classes=num_class) 
         ]
     return metrics
+
+
+def cv_load(run,model):
+    #For loading models
+    tf.keras.backend.clear_session()
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
+        #model = load_model(f'/work/jflores_umass_edu/hma/log/{run_name}/{modeln}/{modeln}.hdf5')
+        model = load_model(f'/work/jflores_umass_edu/hma2/log/{run}/{model}.hdf5')
+        #model = load_model(f'/work/jflores_umass_edu/hma2/log/#old_3k_runs/{run_name}/{modeln}.hdf5')
+    return model

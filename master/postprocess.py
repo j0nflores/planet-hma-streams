@@ -1,12 +1,43 @@
 #Functions to reproject and merge predicted chips
 
-from osgeo import gdal
+
 import cv2
 import os
 import glob
 import numpy as np
+from osgeo import gdal
 import shutil
 
+
+def postprocess_cv(true,pred,kclass,m2b=False):
+    y_test,y_pred = pred_array(true,pred,kclass) #always multi!
+
+    #for multi to binary test 
+    if m2b == True:
+        y_test, y_pred = multi_to_binary(y_test, y_pred)
+        
+    return y_test,y_pred
+        
+def pred_array(true,pred,kclass='multi'):
+    if kclass == 'binary':
+        true = true.reshape(-1)
+        pred = pred.reshape(-1).astype('bool')
+    elif kclass == 'multi':
+        if true.shape[3] == 3:
+            true = np.argmax(true,axis=3).reshape(-1)
+        else:
+            true.reshape(-1)
+        pred = np.argmax(pred,axis=3).reshape(-1)
+    return true, pred
+
+
+# for multi to binary val test
+def multi_to_binary(true,pred):
+    true[true==2] = 1 
+    pred[pred==2] = 1 
+    y_test = true.reshape(-1)
+    y_pred = pred.reshape(-1)
+    return y_test, y_pred
 
 
 def proj_pred(img_path, predicted_array, tmp_pred_path,multi=False):
@@ -68,3 +99,4 @@ def merge_masks(mask_path,out_path,img_path):
     #delete vrt and temporary masks folder
     #os.remove(f"{mask_path}/merged.vrt")
     shutil.rmtree(mask_path) 
+    

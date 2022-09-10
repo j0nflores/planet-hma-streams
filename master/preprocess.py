@@ -11,11 +11,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.utils import to_categorical
 from sklearn.utils.class_weight import compute_class_weight,compute_sample_weight
+from sys import getsizeof
 
 def prep_data(img_path,mask_path,val_split,random,kclass='multi'):
+    start_train = time.time()
     train_images = get_img_arrays(img_path)/255
-    print('\timage shape: ',train_images.shape)
-
     train_masks = get_img_arrays(mask_path,'*png',0)
     if kclass == 'binary':
         train_masks[train_masks==2] = 1
@@ -26,8 +26,12 @@ def prep_data(img_path,mask_path,val_split,random,kclass='multi'):
         
     X_train,X_test,y_train,y_test = train_test_split(train_images, train_masks, test_size = val_split, random_state = random)
     
-    print(f'\ttrain: {len(y_train)}, Val: {len(y_test)}, Seed: {random}')
+    print('\timage shape: ',train_images.shape)
     print('\tmask shape: ',train_masks.shape)
+    print(f'\ttrain: {len(y_train)}, Val: {len(y_test)}, Seed: {random}')
+    print(f"\n\ttrain_imgs size: {getsizeof(X_train)/1000000:.2f} MB")
+    print(f"\ttrain_masks size: {getsizeof(y_train)/1000000:.2f} MB")
+    print(f'\n\tPreprocessing time: {(time.time() - start_train)/60:0.2f} min')
     
     return X_train, X_test, y_train, y_test
 
@@ -47,15 +51,19 @@ def encode_masks(mask_arrays):
 
 def tf_dataset(x, y, cache, name, batch,w=""):
     if len(w)>1:
-        data = tf.data.Dataset.from_tensor_slices((x, y,w))
+        data = tf.data.Dataset.from_tensor_slices((x, y, w))
     else:
         w = None
         data = tf.data.Dataset.from_tensor_slices((x, y))
     data = data.batch(batch)
     data = data.take(len(x))
+    
+    #For caching
     #cache_path = f'./cache/{name}'
     #os.makedirs(cache_path,exist_ok=True)
     #data = data.cache(cache_path+f'/{name}_{cache}')
+    
+    print('\n\t',data.element_spec)
     return data
 
 def prep_data_rf(X,y, kclass):
@@ -68,29 +76,6 @@ def prep_data_rf(X,y, kclass):
     if kclass == 'multi':
         y = np.argmax(y,axis=3).reshape(-1)
     return X, y
-
-
-def pred_array(true,pred,kclass='multi'):
-    if kclass == 'binary':
-        true = true.reshape(-1)
-        pred = pred.reshape(-1).astype('bool')
-    elif kclass == 'multi':
-        if true.shape[3] == 3:
-            true = np.argmax(true,axis=3).reshape(-1)
-        else:
-            true.reshape(-1)
-        pred = np.argmax(pred,axis=3).reshape(-1)
-    return true, pred
-
-
-# for multi to binary val test
-def multi_to_binary(true,pred):
-    #pred = np.argmax(pred,axis=3)
-    true[true==2] = 1 
-    pred[pred==2] = 1 
-    y_test = true.reshape(-1)
-    y_pred = pred.reshape(-1)
-    return y_test, y_pred
 
 
 def get_weights(y,kclass):
@@ -119,7 +104,7 @@ def get_weights_const(y,kclass):
     elif kclass == 'multi':
         nclass = 3
         y = np.argmax(y,axis=3)
-        class_weights = [0.05,0.35,0.60] 
+        class_weights = [0.05,0.25,0.70] 
         
     sample_weights = y.astype('float32')
     for i in range(nclass):
