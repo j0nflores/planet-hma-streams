@@ -76,7 +76,8 @@ def unet(filter=18,kernel=3,input_size=(512,512,3),nclass=3):
     elif nclass > 1:
         activation = 'softmax'
         loss = 'categorical_crossentropy'
-    
+        
+    uc4 = conv(nclass,kernel,step=2)(uc4)
     conv_out = Conv2D(nclass, 1, activation = activation)(uc4)
     
     #Compile model

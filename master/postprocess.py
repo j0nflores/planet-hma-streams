@@ -9,13 +9,17 @@ from osgeo import gdal
 import shutil
 
 
-def postprocess_cv(true,pred,kclass,m2b=False):
-    y_test,y_pred = pred_array(true,pred,kclass) #always multi!
+def postprocess_cv(true,pred,kclass,m2b=False,model='multi'):
+
+    if model == 'binary':
+        pred = pred > 0.2
+        
+    y_test,y_pred = pred_array(true,pred,kclass) 
 
     #for multi to binary test 
     if m2b == True:
         y_test, y_pred = multi_to_binary(y_test, y_pred)
-        
+ 
     return y_test,y_pred
         
 def pred_array(true,pred,kclass='multi'):
