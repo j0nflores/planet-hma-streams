@@ -23,10 +23,11 @@ def main():
     img_list = batch[bindex[aindex][0]:bindex[aindex][1]]
 
     #Setup output paths
-    outpath = '/nas/cee-water/cjgleason/jonathan/data/hma_out'
+    outpath = '/nas/cee-water/cjgleason/jonathan/data/hma_out_bin'
     tmp_path = f'/nas/cee-water/cjgleason/jonathan/data/hma_out/tmp_pred_{aindex}'
 
-    model = load_model('/work/jflores_umass_edu/hma/log/hma_multi/hma_multi_10.hdf5')    
+    #model = load_model('/work/jflores_umass_edu/hma/log/hma_b16lr5e500/hma_b16lr5e500_6/hma_b16lr5e500_6.hdf5')
+    model = load_model('/work/jflores_umass_edu/hma2/log/cv_best_rerun_orig/cv_best_rerun_orig_6.hdf5')
     
     err = []
     for path in img_list:

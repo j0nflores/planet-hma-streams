@@ -62,6 +62,7 @@ def proj_pred(img_path, predicted_array, tmp_pred_path,multi=False):
         #Get pred arrays
         if multi == True:
             arr_pred = np.argmax(predicted_array[i], axis=2)[:,:,np.newaxis]
+            arr_pred[arr_pred==2] = 1
             cv2.imwrite(out_dir,arr_pred)
             #Image.fromarray(arr_pred.astype('uint8')).save(out_dir)
         else:
