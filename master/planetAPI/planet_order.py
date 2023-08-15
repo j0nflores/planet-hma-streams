@@ -105,7 +105,7 @@ def order_batch(batch_ids):
         }
         order_urls.append(order_now(payload))
     
-    out = "./outputs/order_urls"
+    out = "./planetAPI/outputs/order_urls"
     os.makedirs(out,exist_ok=True)
     np.save(f'{out}/urls.npy',order_urls)
     return order_urls
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         
         # Start order
         start = time.time()
-        ids_path = "/work/jflores_umass_edu/planetAPI/outputs/reach_img.npy"
+        ids_path = "./planetAPI/outputs/reach_img.npy"
         imglist =  np.load(ids_path, allow_pickle = True).tolist()
         all_ids = get_all_ids(imglist)
         all_ids = all_ids[2:] #already ordered 0,1 as test
@@ -150,8 +150,8 @@ if __name__ == "__main__":
         
         # Start download
         start = time.time()
-        urls_path = '/work/jflores_umass_edu/planetAPI/outputs/order_urls/urls.npy'
-        outpath = r'/nas/cee-water/cjgleason/jonathan/data/planet/20202021/'
+        urls_path = './planetAPI/outputs/order_urls/urls.npy'
+        outpath = r'./data/planet/20202021/'
         batch_urls =  np.load(urls_path, allow_pickle = True).tolist()
         download_batch(outpath,batch_urls)
         print(f'Download complete. Time elapsed: {(time.time()-start)/60:.2f} min')

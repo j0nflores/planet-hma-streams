@@ -2,22 +2,18 @@ import os
 import tensorflow as tf
 
 
-#Training directory
-imgs_path = '/work/jflores_umass_edu/data/planet/3k_new/imgs/'
-masks_path = '/work/jflores_umass_edu/data/planet/3k_new/masks/'
-#Test sets
-#imgs_path = '/work/jflores_umass_edu/hma2/data/test/imgs/'
-#masks_path = '/work/jflores_umass_edu/hma2/data/test/masks/'
-
+#Dataset directory
+imgs_path = './data/planet/imgs/'
+masks_path = './data/planet/masks/'
 
 #Main config
-rand = int(os.environ['SLURM_ARRAY_TASK_ID']) 
-method = 'rf'
-k_class = 'binary' 
-m2b = False
-mode = 'train'
+rand = int(os.environ['SLURM_ARRAY_TASK_ID']) #tile selection random seed
+method = 'rf' #select model
+k_class = 'binary' #binary or multi
+m2b = False #convert label from multiclass to binary
+mode = 'train' #train or predict
 
-#Log
+#Log configs
 run_name = f'{method}_{k_class[0:3]}2' 
 modeln =  run_name+f'_{rand}'
 os.makedirs(f"./log/{run_name}/",exist_ok=True)
@@ -25,16 +21,15 @@ print(run_name)
 print(modeln)
 
 if method == 'rf':
-    tree = 200 #int(os.environ['SLURM_ARRAY_TASK_ID']) #args["trees"]
-    depth = 7 #None # int(os.environ['SLURM_ARRAY_TASK_ID'])  #args["depth"]
-    #run_name = f'rf_{k_class[0:3]}_t{tree}d{depth}'    
-    weights = None #{0:0.05, 1:0.25, 2:0.70} #'balanced' #
+    tree = 200 
+    depth = 9 
+    weights = None 
     print('t',tree, 'd', depth, 'r', rand, 'w',weights)
 
 
 if method == 'cv':
     
-    #Limit memory
+    #Limit gpu memory
     gpus = tf.config.list_physical_devices('GPU')
     if gpus:
         try:#memory growth needs to be the same across GPUs

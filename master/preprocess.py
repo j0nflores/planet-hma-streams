@@ -12,19 +12,30 @@ from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.utils import to_categorical
 from sklearn.utils.class_weight import compute_class_weight,compute_sample_weight
 from sys import getsizeof
+import rasterio
 
-def prep_data(img_path,mask_path,val_split,random,kclass='multi'):
+def prep_data(img_path,mask_path,val_split,random,kclass='multi',season="all"):
     start_train = time.time()
-    train_images = get_img_arrays(img_path)/255
-    train_masks = get_img_arrays(mask_path,'*png',0)
+    
+    train_masks = get_img_arrays(mask_path,'*png',im_set='mask')
     if kclass == 'binary':
         train_masks[train_masks==2] = 1
         train_masks = train_masks[:,:,:,np.newaxis]
     elif kclass == 'multi':
-        train_masks = get_img_arrays(mask_path,'*png',0)
+        train_masks = get_img_arrays(mask_path,'*png',im_set='mask')
         train_masks = encode_masks(train_masks)
         
-    X_train,X_test,y_train,y_test = train_test_split(train_images, train_masks, test_size = val_split, random_state = random)
+    if season == "all":
+        train_images = get_img_arrays(img_path)/255
+        X_train,X_test,y_train,y_test = train_test_split(train_images, train_masks, test_size=val_split, random_state=random)
+    else:
+        idx_seas,train_images = get_img_arrays(img_path,season=season)
+        idx =  np.arange(len(train_images))   
+        X_train,X_test,y_train,y_test,idx_train,idx_test = train_test_split(train_images, train_masks, idx, test_size=val_split, random_state=random)
+        X_train = X_train[np.array(idx_seas)[idx_train]==season]/255
+        X_test = X_test[np.array(idx_seas)[idx_test]==season]/255
+        y_train = y_train[np.array(idx_seas)[idx_train]==season]
+        y_test = y_test[np.array(idx_seas)[idx_test]==season]
     
     print('\timage shape: ',train_images.shape)
     print('\tmask shape: ',train_masks.shape)
@@ -36,12 +47,54 @@ def prep_data(img_path,mask_path,val_split,random,kclass='multi'):
     return X_train, X_test, y_train, y_test
 
 
-    
-def get_img_arrays(imgs_fold_path,format_lookup='*tif',channel=1):
+def get_img_arrays(imgs_fold_path,format_lookup='*tif',im_set='img',season="all"):
     img_list = sorted(glob.glob(imgs_fold_path+format_lookup))
-    #images = [cv2.resize(cv2.imread(img_path,channel),dsize=size) for img_path in img_list]
-    images = [cv2.imread(img_path,channel) for img_path in img_list]
-    return np.array(images).astype('float32')
+    dates = [os.path.basename(x)[0:8] for x in img_list]
+    
+    if im_set == 'mask':
+        img_list = [x[0:43]+'masks_rn/'+os.path.basename(x) for x in img_list]      
+        images = [cv2.imread(img_path,0) for img_path in img_list]
+        images = np.array(images).astype('float32')
+        return images
+    
+    elif im_set == 'img':
+        img_list = [x[0:43]+'imgs_rn/'+os.path.basename(x)[:-4]+'.tif' for x in img_list]
+        images = []
+        for img_path in img_list:
+            with rasterio.open(img_path,'r') as f:
+                imgr = np.moveaxis(f.read(),0,-1)
+            images.append(imgr)
+        images = np.array(images).astype('float32')
+
+        if season=="all":
+            return images
+        else:
+            idx_seas = []
+            for i in dates:
+                month = int(i[4:6])
+                if month in [9,10,11]:
+                    seas = 'fall'
+                elif month in [3,4,5]:
+                    seas = 'spring'
+                elif month in [6,7,8]:
+                    seas = 'summer'
+                else:
+                    pass
+                idx_seas.append(seas)
+            return idx_seas, images
+
+
+def prep_data_rf(X,y, kclass):
+    x1 = X[:,:,:,0].reshape(-1)[:,np.newaxis]
+    x2 = X[:,:,:,1].reshape(-1)[:,np.newaxis]
+    x3 = X[:,:,:,2].reshape(-1)[:,np.newaxis]
+    x4 = X[:,:,:,3].reshape(-1)[:,np.newaxis]
+    X = np.concatenate((x1,x2,x3,x4),axis=1)
+    if kclass == 'binary':
+        y = y.reshape(-1)
+    if kclass == 'multi':
+        y = np.argmax(y,axis=3).reshape(-1)
+    return X, y
 
 def encode_masks(mask_arrays):
     labelencoder = LabelEncoder()
@@ -65,17 +118,6 @@ def tf_dataset(x, y, cache, name, batch,w=""):
     
     print('\n\t',data.element_spec)
     return data
-
-def prep_data_rf(X,y, kclass):
-    x1 = X[:,:,:,0].reshape(-1)[:,np.newaxis]
-    x2 = X[:,:,:,1].reshape(-1)[:,np.newaxis]
-    x3 = X[:,:,:,2].reshape(-1)[:,np.newaxis]
-    X = np.concatenate((x1,x2,x3),axis=1)
-    if kclass == 'binary':
-        y = y.reshape(-1)
-    if kclass == 'multi':
-        y = np.argmax(y,axis=3).reshape(-1)
-    return X, y
 
 
 def get_weights(y,kclass):

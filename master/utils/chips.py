@@ -20,15 +20,15 @@ from rasterio import plot
 
 def main():
     main_st = time.time()
-    img_fold = "/nas/cee-water/cjgleason/jonathan/data/planet/20202021/e4a48c44-8262-4653-9e7a-8a3581853f32/PSScene4Band"
-    rivlines = "/work/jflores_umass_edu/planetAPI/data/fromUTM/merit20.shp"
-    out_fold = "/work/jflores_umass_edu/data/planet"
+    img_fold = "./data/planet/20202021/PSScene4Band"
+    rivlines = "./data/fromUTM/merit20.shp"
+    out_fold = "./data/planet"
     batch_chips(out_fold,img_fold)
     chip_rivs(out_fold,rivlines)
     print(f'Processing completed. Time elapsed: {(time.time() - main_st)/60:0.2f} min')
 
 def main_catch():
-    fold = '/nas/cee-water/cjgleason/jonathan/data/planet/20202021'
+    fold = './data/planet/20202021'
     batch = glob.glob(fold+'/*')
     batch = [os.path.basename(x) for x in batch]
     all = []
@@ -42,7 +42,7 @@ def main_catch():
         all.append(imgs)
     all = [x for y in all for x in y]
 
-    path = '/work/jflores_umass_edu/data/planet'
+    path = './data/planet'
     done = glob.glob(path+"/*.tif")
     done = [x for x in done if x[-6:] == 'SR.tif']
     len(done)
@@ -57,8 +57,8 @@ def main_catch():
     notyet = list(notyet.values())
     
     main_st = time.time()
-    rivlines = "/work/jflores_umass_edu/planetAPI/data/fromUTM/merit20.shp"
-    out_fold = "/work/jflores_umass_edu/data/planet"
+    rivlines = "./data/fromUTM/merit20.shp"
+    out_fold = "./data/planet"
     batch_catch(out_fold,notyet)
     chip_rivs(out_fold,rivlines)
     print(f'Processing completed. Time elapsed: {(time.time() - main_st)/60:0.2f} min')

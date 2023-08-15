@@ -1,5 +1,4 @@
 # Preprocess Planet imagery for labeling/annotations and input to UNet
-# 
 # Organize chips and annotation as UNet training dataset, creates "train" folder
 #
 # @JAFlores, 11.2021 

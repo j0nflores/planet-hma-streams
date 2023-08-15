@@ -25,7 +25,7 @@ def authenticate():
     with open('planet_password.txt') as f:
         password = f.readlines()[0]
     payload = json.dumps({
-        "email": "cjgleason@umass.edu",
+        "email": secret,
         "password": password
     })
 
@@ -216,14 +216,14 @@ def print_stats(ids, seas, sum):
 
 def export_reachimgs(merit,season_name,good,bad):
     # Export reach-image info
-    os.makedirs(f'./outputs/{merit}/{season_name}',exist_ok=True)
-    goodfile = f"./outputs/{merit}/{season_name}/good_geom.npy"
-    badfile = f"./outputs/{merit}/{season_name}/bad_geom.npy"
+    os.makedirs(f'./planetAPI/outputs/{merit}/{season_name}',exist_ok=True)
+    goodfile = f"./planetAPI/outputs/{merit}/{season_name}/good_geom.npy"
+    badfile = f"./planetAPI/outputs/{merit}/{season_name}/bad_geom.npy"
     np.save(goodfile, good)
     np.save(badfile, bad)
 
 def export_seasonids(merit,ids):
-    id_seasonfile = f"./outputs/{merit}/ids.npy"
+    id_seasonfile = f"./planetAPI/outputs/{merit}/ids.npy"
     np.save(id_seasonfile, ids)  
     
     
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     PLANET_API_KEY, payload, headers, response = authenticate()
     
     # Config paths and seasons
-    path = r'./data/fromUTM/merit13.shp'
+    path = r'./data/fromUTM/merit20.shp'
     seasons = ['fall','winter','spring','summer'] 
     merit_fn = os.path.basename(path)[:-4]        
     himat_bboxes = get_bbox(path)

@@ -39,12 +39,12 @@ def get_threshold(X,y, method='simple'):
     
 def get_ndwi(X):
     np.seterr(divide='ignore', invalid='ignore') #ignore nan pixel division
-    green,red,nir = cv2.split(X)
+    blue,green,red,nir = cv2.split(X)
     ndwi = (green - nir) / (green + nir)
     return ndwi
 
-def get_rf(X,y,tree=100,depth=5,weight=None):
-    rf = RandomForestClassifier(n_estimators=tree, 
+def get_rf(X,y,tree=100,depth=7,weight=None):
+    rf = RandomForestClassifier(n_estimators=tree, #n_jobs=-1,
                                 max_depth=depth, oob_score=True, 
                                 class_weight=weight,random_state=0) 
     rf = rf.fit(X, y)
@@ -153,6 +153,6 @@ def cv_load(run,model):
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
         #model = load_model(f'/work/jflores_umass_edu/hma/log/{run_name}/{modeln}/{modeln}.hdf5')
-        model = load_model(f'/work/jflores_umass_edu/hma2/log/{run}/{model}.hdf5')
+        model = load_model(f'/work/jflores_umass_edu/rse_rev/log/{run}/{model}.hdf5')
         #model = load_model(f'/work/jflores_umass_edu/hma2/log/#old_3k_runs/{run_name}/{modeln}.hdf5')
     return model

@@ -13,8 +13,8 @@ from datetime import timedelta as td
 def main():
     # config
     slist = ['fall','spring','summer']
-    outdir = './outputs/reach_img.npy'
-    plotdir = './outputs/img_dist.jpg'
+    outdir = './planetAPI/outputs/reach_img.npy'
+    plotdir = './planetAPI/outputs/img_dist.jpg'
     season_imgs = {}
     
     for s_index, season in enumerate(slist):
@@ -33,7 +33,7 @@ def main():
     print('Exported plots and reach-image file to /outputs folder')
     
 def load_data(season):                  
-    dat = np.load(f'/work/jflores_umass_edu/planetAPI/outputs/merit20/{season}/good_geom.npy',allow_pickle=True).tolist()
+    dat = np.load(f'./planetAPI/outputs/merit20/{season}/good_geom.npy',allow_pickle=True).tolist()
     return dat
 
 def get_reach(img_dict):

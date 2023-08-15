@@ -87,5 +87,5 @@ def plot_cv_train_ci():
     plt.show()
     
 
-#def plot_ndwi(X):
+
     

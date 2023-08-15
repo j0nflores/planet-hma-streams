@@ -8,8 +8,8 @@ import shutil
 
         
 def main():
-    fold = '/work/jflores_umass_edu/data/planet/chips'
-    label_path = '/work/jflores_umass_edu/data/planet/label'
+    fold = './data/planet/imgs'
+    label_path = './data/planet/masks'
     img = img_fold(fold)
     selection = select_chip(img)
     copy_chip(label_path,selection)
