@@ -18,7 +18,7 @@ def plot_sa(ob,pred,ylim,fn):
     plt.xticks(np.arange(0, ylim, 0.25))
     plt.yticks(np.arange(0, ylim, 0.25))
     plt.plot([-.2, ylim], [-.2, ylim], color='red',linewidth=0.75)
-    plt.savefig(f'./figs/sa_{fn}.png',dpi=120)
+    plt.savefig(f'./figs/sa_{fn}.jpg',dpi=120)
     
 #Setup directory 
 imgs_path = './data/planet/imgs/'

@@ -45,7 +45,7 @@ def plot_sub():
     plt.imshow(cv_pred[i],cmap=binary)
     plt.axis('off')
     plt.tight_layout()
-    plt.savefig(f'./figs/bin{i}.png',dpi=120)
+    plt.savefig(f'./figs/bin{i}.jpg',dpi=120)
 
 def plot_multi():
     cols, i = 4, 0
@@ -64,7 +64,7 @@ def plot_multi():
     plt.imshow(cv_pred[i],cmap=multi)
     plt.axis('off')
     plt.tight_layout()
-    plt.savefig(f'./figs/mul{i}.png',dpi=120)
+    plt.savefig(f'./figs/mul{i}.jpg',dpi=120)
     
 #Setup directory 
 imgs_path = './data/planet/imgs/'

@@ -19,7 +19,7 @@ def df_scores():
         if (method == 'rf') or (method == 'cv'):
             fold = f'./log/{method}_season/'
         else:
-            fold = f'/work/jflores_umass_edu/hma2/log/{method}_season/'
+            fold = f'./log/{method}_season/'
         for s in seasons:
             for mi, m in enumerate(mlist):
                 files = sorted(glob.glob(fold+f'/*{s}.csv'))
