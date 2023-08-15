@@ -1,9 +1,5 @@
 #files/imgs
-*.png
-*.jpg
-*.jpeg
 *.txt
-*.csv
 *.sh
 *.npy
 *.ipynb
@@ -13,7 +9,4 @@
 
 #folders
 .ipynb_checkpoints/
-log/
-debug/
-data/
-plots/
+
