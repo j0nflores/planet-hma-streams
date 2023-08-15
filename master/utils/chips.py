@@ -239,8 +239,7 @@ def chip_rivs(fold_chips,path_rivlines):
 
 if __name__ == "__main__":
 
-    #main()
-    main_catch()
+    main()
 
 
 
