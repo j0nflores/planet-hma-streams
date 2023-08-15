@@ -1,7 +1,7 @@
 ## Mapping proglacial in HMA with Planet imagery
 
 
-This repo implements semantic segmentation using UNet architecture from Tensorflow/Keras. The objective is to classify proglacial rivers in High Mountain Asia (HMA) using high-resolution Planet imagery. Raw images are preprocessed from 16-bit to 8-bit false color channels (nir,r,g,b) and are sliced into 512x512 chips before placing into the image segmentation/classification methods. Postprocessing of classified chips include merging of tiles to return the same geospatial information from the raw Planet imagery. 
+The objective is to classify small proglacial stream in High Mountain Asia (HMA) using high-resolution Planet imagery. Raw images are preprocessed from 16-bit to 8-bit false color channels (nir,r,g,b) and are sliced into 512x512 chips before placing into the image segmentation/classification methods. Postprocessing of classified chips include merging of tiles to return the same geospatial information from the raw Planet imagery. 
 
 ### Prerequisites
 
@@ -42,15 +42,17 @@ data
     │   ....
 ```
 
-This repo includes PlanetAPI image lookup, order, and downloads (inside */master/planetAPI/*), PlanetScope raw image preprocessing, and water classifications implementations with:
+This repo includes PlanetAPI image lookup, order, and downloads (inside */master/planetAPI/*), PlanetScope raw image preprocessing, and water classifications implementations.
 
 ```
-    a) NDWI Thresholding (simple and Otsu)
-    b) Random forest
-    c) U-Net
+    a) NDWI Thresholding (Simple and Otsu) - thresh.py
+    b) Random forest - rf.py
+    c) Computer Vision (U-Net) - cv.py
 ```
 
 ### Sample Results
+
+Some illustration of mapping results from the Planetscope scenes in HMA.
 
 ![alt text](./figs/sample.jpg "Sample")
 
