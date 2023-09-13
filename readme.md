@@ -54,10 +54,10 @@ This repo also includes PlanetAPI image lookup, order, and downloads (under */ma
 
 Some illustration of mapping results between the classification methods from the PlanetScope scenes in HMA.
 
-![alt text](./figs/sample.jpg "Sample")
+![alt text](./docs/sample.jpg "Sample")
 
 
 Illustration of multi-tile mapping within a PlanetScope strip in HMA (with computer vision).
 
-![alt text](./figs/pred_grid.jpg "Grid")
+![alt text](./docs/pred_grid.jpg "Grid")
 
