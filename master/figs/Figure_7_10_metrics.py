@@ -5,12 +5,6 @@ import matplotlib.pyplot as plt
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 
-#plot setup
-colors = [(0, 0, 0), (1, 0, 1), (0, 1, 1)]  
-n_bins = [3, 6, 10, 100]  # Discretizes the interpolation into bins
-cmap_name = 'my_list'
-multi = LinearSegmentedColormap.from_list(cmap_name, colors)
-
 def df_scores(fold,method,k_class):
     dict,val,met,cl,mt = {},[],[],[],[]
     files = sorted(glob.glob(fold+f'/metrics*.csv'))
@@ -50,9 +44,14 @@ def plot_scores(pdf,hue,cmap='Paired'):
                 rotation='horizontal', 
                 fontsize=8.5)
     plt.legend([],[], frameon=False)
-   
     
-#BINARY METRICS
+#plot setup
+colors = [(0, 0, 0), (1, 0, 1), (0, 1, 1)]  
+n_bins = [3, 6, 10, 100]  # Discretizes the interpolation into bins
+cmap_name = 'my_list'
+multi = LinearSegmentedColormap.from_list(cmap_name, colors)
+    
+#BINARY METRICS#######################################################
 simple_mp = './log/thresh_simple'
 otsu_mp = './log/thresh_otsu'
 rf_mp = './log/rf_mul'
@@ -69,11 +68,11 @@ cv_w = df_scores(cv_wp,'Computer Vision','binary')
 df_m = pd.concat([otsu,simple,rf,cv_w])#
 df_m['Scores'] = df_m['Scores'].apply(lambda x: 0.99 if x>0.99 else x)
 
-#Plot binary metrics
+#Plot binary metrics (Figure 7)
 plot_scores(df_m[df_m.Class=='Water'],'Method')
+plt.savefig('./figs/fig7.jpg',dpi=300) 
 
-
-#MULTICLASS METRICS
+#MULTICLASS METRICS#######################################################
 rf_mp = './log/rf_mul/mul'
 cv_mp = './log/cv_mul'
 
@@ -107,6 +106,6 @@ df_mt = df_mt[df_mt.Class!='Land/Background']
 df_new = pd.concat([df_mt,rf_bin,rf_mbin,cv_bin,cv_mbin])
 df_new = df_new[df_new.Metric != 'Specificity']
 
-#Plot multiclass metrics
+#Plot multiclass metrics (Figure 10b)
 plot_scores(df_new[(df_new.Method=='Random Forest') & (df_new.Class!='Mean')],'Class','Blues')
 plot_scores(df_new[(df_new.Method=='Computer Vision') & (df_new.Class!='Mean')],'Class','Blues')

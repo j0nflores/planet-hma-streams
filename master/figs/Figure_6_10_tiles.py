@@ -101,6 +101,9 @@ print(simple_pred.shape)
 print(otsu_pred.shape)
 print(rf_pred.shape)
 print(cv_pred.shape)
-    
+
+#Plot Figure 6
 plot_sub()
+
+#Plot Figure 10a
 plot_multi()

@@ -1,7 +1,7 @@
 ## Mapping proglacial in HMA with Planet imagery
 
 
-The objective is to classify small proglacial stream in High Mountain Asia (HMA) using high-resolution Planet imagery. Raw images are preprocessed from 16-bit to 8-bit false color channels (nir,r,g,b) and are sliced into 512x512 chips before placing into the image segmentation/classification methods. Postprocessing of classified chips include merging of tiles to return the same geospatial information from the raw Planet imagery. 
+The objective is to classify small proglacial stream in High Mountain Asia (HMA) using high-resolution Planet imagery. Raw images are preprocessed from 16-bit to 8-bit false color channels (nir,r,g,b) and are sliced into 512×512 chips before placing into the image segmentation/classification methods. Postprocessing of classified chips include merging of tiles to return the same geospatial information from the raw Planet imagery. 
 
 ### Prerequisites
 
@@ -21,7 +21,7 @@ conda env create -f environment.yml
 
 ### Implementation
 
-Raw PlanetScope images should be preprocessed using *chips.py* (inside the utils folder). 
+Raw PlanetScope images should be preprocessed using *chips.py* (*/master/utils/*). 
 
 Use the labeled chips generated from annotation tools such as [PixelAnnotationTool](https://github.com/abreheret/PixelAnnotationTool). The scripts calls the training and validation data following the structure below. Note: The *pred* folder is optional output directory for prediction tasks.
 
@@ -42,7 +42,7 @@ data
     │   ....
 ```
 
-This repo includes PlanetAPI image lookup, order, and downloads (inside */master/planetAPI/*), PlanetScope raw image preprocessing, and water classifications implementations.
+This repo also includes PlanetAPI image lookup, order, and downloads (under */master/planetAPI/*), PlanetScope raw image preprocessing, and water classifications implementations.
 
 ```
     a) NDWI Thresholding (Simple and Otsu) - thresh.py
@@ -52,7 +52,12 @@ This repo includes PlanetAPI image lookup, order, and downloads (inside */master
 
 ### Sample Results
 
-Some illustration of mapping results from the Planetscope scenes in HMA.
+Some illustration of mapping results between the classification methods from the PlanetScope scenes in HMA.
 
 ![alt text](./figs/sample.jpg "Sample")
+
+
+Illustration of multi-tile mapping within a PlanetScope strip in HMA (with computer vision).
+
+![alt text](./figs/pred_grid.jpg "Grid")
 

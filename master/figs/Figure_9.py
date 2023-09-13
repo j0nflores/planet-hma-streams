@@ -60,9 +60,9 @@ cvs = dfx[(dfx.Method=='cv')&(dfx.Class=='Water')].groupby(['Season','Metric']).
 summary = pd.concat([sms,ots,rfs,cvs])
 print(summary)
 
-#plot seasonal performance
+#plot seasonal performance (Figure 9)
 sns.set_context("paper",font_scale=1.5)
 g = sns.catplot(x='Metric', y="Scores", hue="Season", col="Method", kind="box",col_wrap=2, \
             estimator='mean', errorbar=('ci', 95),palette='tab10' ,aspect =1, linewidth=.3, fliersize=3,
             data=dfx, ascending=[True,False]))
-                                                                            
+plt.savefig('./figs/fig9.jpg',dpi=300)                                                          

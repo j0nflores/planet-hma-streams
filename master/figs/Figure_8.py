@@ -49,8 +49,8 @@ cv = load_model('./model/cv/cv_6.hdf5')
 cv_pred = cv.predict(X_test)
 cv_pred = np.argmax(cv_pred,axis=3)
 
-#Calculate surface area
-f = 9/1000**2 #3x3m2 for km2
+#Get surface area
+f = 9/1000**2 #3x3m2 to km2
 obs = [np.count_nonzero(y_test[i])*f for i in range(len(y_test))]
 pred_simple = [np.count_nonzero(simple_pred[i])*f for i in range(len(simple_pred))]
 pred_otsu = [np.count_nonzero(otsu_pred[i])*f for i in range(len(otsu_pred))]
@@ -78,8 +78,7 @@ sa_met['rmse_cv'] = metrics.mean_squared_error(obs,pred_cv,squared=False)
 with open("./log/sa_metrics.json", "w") as i :
     json.dump(sa_met,i)
     
-    
-#plot results
+#plot results (Figure 8)
 plot_sa(obs,pred_cv,2.5,'cv')
 plot_sa(obs,pred_simple,2.5,'simple')
 plot_sa(obs,pred_otsu,2.5,'otsu')
