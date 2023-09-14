@@ -44,20 +44,24 @@ data
 
 This repo also includes PlanetAPI image lookup, order, and downloads (under */master/planetAPI/*), PlanetScope raw image preprocessing, and water classifications implementations.
 
+### Sample Results
+
+Some illustration of mapping results between the classification methods from the PlanetScope scenes in HMA. To implement water classification methods, run:
+
 ```
     a) NDWI Thresholding (Simple and Otsu) - thresh.py
     b) Random forest - rf.py
     c) Computer Vision (U-Net) - cv.py
 ```
 
-### Sample Results
-
-Some illustration of mapping results between the classification methods from the PlanetScope scenes in HMA.
-
 ![alt text](./docs/sample.jpg "Sample")
 
 
-Illustration of multi-tile mapping within a PlanetScope strip in HMA (with computer vision).
+### Multi-tile mapping within a PlanetScope strip in HMA using computer vision. 
+
+For full classification of raw PlanetScope imagery, run *./master/utils/img_pred.py*. 
+
+This will preprocess tha raw image and identify water pixels using a pre-trained cv model for HMA (under *./log/cv_mul/cv_multi.hdf5*) 
 
 ![alt text](./docs/pred_grid.jpg "Grid")
 
