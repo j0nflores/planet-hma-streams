@@ -107,7 +107,7 @@ def class_chips(outdir,tif):
 
 def conv_8bits(img_path):
     src = rasterio.open(img_path) 
-    data = src.read((4,3,2)) 
+    data = src.read() #(4,3,2)
     scaled = (data  * (255 / data.max())).astype(np.uint16)
     scaled = plot.reshape_as_image(scaled).astype(np.ubyte) 
     return src,scaled
@@ -147,7 +147,7 @@ def write_tif(out_dir_fn,img,src):
         driver='GTiff',
         height=src.shape[0],
         width=src.shape[1],
-        count=3,
+        count=4,
         dtype=img.dtype,
         crs=src.crs,
         transform=src.transform,

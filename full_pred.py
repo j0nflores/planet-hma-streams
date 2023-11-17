@@ -9,13 +9,13 @@ import os
 import cv2
 import glob
 import numpy as np
-from chips import *
-from models import *
-from postprocess import *
+from master.utils.chips import *
+from master.models import *
+from master.postprocess import *
 
 def main():
     #Set prediction folder
-    pred_fold = './pred/raw_planet_img_folder'
+    pred_fold = './pred/raw_planet_folder'
     pred_path = os.path.dirname(pred_fold) #"./pred"
 
     #Preprocess and predict images
