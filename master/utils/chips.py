@@ -16,7 +16,7 @@ import geopandas as gpd
 from osgeo import gdal
 from shapely.geometry import box
 from rasterio import plot 
-
+import multiprocessing as mp
 
 def main():
     main_st = time.time()
@@ -64,7 +64,7 @@ def main_catch():
     print(f'Processing completed. Time elapsed: {(time.time() - main_st)/60:0.2f} min')
     
     
-def batch_chips(outdir,img_folder_path):
+'''def batch_chips(outdir,img_folder_path):
     path_files = glob.glob(img_folder_path+"/*.tif")
     path_files = [x for x in path_files if x[-6:] == 'SR.tif']
     err_img = []
@@ -73,9 +73,20 @@ def batch_chips(outdir,img_folder_path):
             class_chips(outdir,path_files[i])
         except:
             err_img.append(i)
-    np.save(f'./log/{os.path.basename(os.path.dirname(img_folder_path))}.npy',err_img)
+    np.save(f'./log/{os.path.basename(os.path.dirname(img_folder_path))}.npy',err_img)'''
     
-    
+
+def batch_chips(outdir,img_folder_path):
+    path_files = glob.glob(img_folder_path+"/*.tif")
+    path_files = [x for x in path_files if x[-6:] == 'SR.tif']
+            
+    with mp.Pool(mp.cpu_count()) as p:
+        # Use starmap to pass multiple arguments to the function
+        p.map(class_chips, [(outdir, arg) for arg in path_files])
+    p.close()
+    p.join()
+
+        
 def batch_catch(outdir,imglist):
     path_files = imglist
     err_img = []
@@ -86,7 +97,9 @@ def batch_catch(outdir,imglist):
             err_img.append(i)
     print(f'./log/catchup.npy',err_img)
     
-def class_chips(outdir,tif):
+#def class_chips(outdir,tif):
+def class_chips(args):
+    outdir,tif = args
     '''
     Arg: tif(string): path to raw planet imagery (e.g. C:\...\file.tif) 
     Output: TIF file of chips stored in chips folder
@@ -98,11 +111,14 @@ def class_chips(outdir,tif):
     print(f'Processing {fn} .....')
 
     #Execute 8bit conversion and chipping
+    #try:
     src,scaled = conv_8bits(tif)
     msk = create_mask(src)
     write_tif(out_8bits,equalize_hist(scaled,msk),src)
-    print(f"\tConverted {str(fn)} in  {round((time.time() - start_time),1)} sec") 
+    #print(f"\tConverted {str(fn)} in  {round((time.time() - start_time),1)} sec") 
     chip_img(out_8bits,512,use_nan=False)
+    #except:
+        #pass
 
 
 def conv_8bits(img_path):

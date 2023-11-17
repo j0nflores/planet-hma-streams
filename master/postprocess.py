@@ -98,7 +98,7 @@ def merge_masks(mask_path,out_path,img_path):
     vrt = gdal.BuildVRT(f"{mask_path}/merged.vrt", mask_list)
     options_str = '-ot Byte -of GTiff' 
     gdal.Warp(out_fn, vrt, options=options_str)
-    print('Created',img+'_mask in ../outputs folder')
+    print('Created',img+'_mask in output folder')
     vrt = None
 
     #delete vrt and temporary masks folder

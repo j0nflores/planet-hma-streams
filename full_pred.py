@@ -16,11 +16,13 @@ from master.postprocess import *
 def main():
     #Set prediction folder
     pred_fold = './pred/raw_planet_folder'
-    pred_path = os.path.dirname(pred_fold) #"./pred"
+    out_fold = os.path.dirname(pred_fold) #"./pred"
+    chips_fold = out_fold+'/chips'
 
     #Preprocess and predict images
-    batch_chips(pred_path,pred_fold)
-    pred_multi(pred_path+'/chips',pred_path)
+    batch_chips(out_fold,pred_fold)
+    pred_multi(chips_fold,out_fold)
+    os.rmdir(chips_fold)
 
 def chiparray(img_chip_path):
     _image = []
@@ -37,27 +39,28 @@ def chiparray(img_chip_path):
 def pred_multi(chips_folder,output_folder):
 
     chips_path = sorted(glob.glob(os.path.join(chips_folder,"*")))
-    print(chips_path)
+    #print(chips_path)
 
     #Run prediction 
     results = []
     for i in range(len(chips_path)):
         pred = chiparray(chips_path[i])
-        print(pred.shape)
+        #print(pred.shape)
         model = load_model('./log/cv_mul/cv_multi.hdf5')
         predx = model.predict(pred)#,1,verbose=1)
         results.append(predx)
 
     #Batch reproject and merge the predicted chips into Planet scene
     tmp_path = f'./{output_folder}/tmp_pred'
-    pred_path = output_folder
+    
     
     for i in range(len(chips_path)):
         #Run projection of masks and save to a temporary folder
         proj_pred(chips_path[i],results[i],tmp_path,multi=True)
 
         #Run merge
-        merge_masks(tmp_path,pred_path,chips_path[i])
+        merge_masks(tmp_path,output_folder,chips_path[i])
+        shutil.rmtree(chips_path[i])
 
 if __name__ == "__main__":
 
