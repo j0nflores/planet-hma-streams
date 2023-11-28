@@ -63,12 +63,19 @@ def proj_pred(img_path, predicted_array, tmp_pred_path,multi=False):
         if multi == True:
             arr_pred = np.argmax(predicted_array[i], axis=2)[:,:,np.newaxis]
             arr_pred[arr_pred==2] = 1
+            
+            #cleanup predicted chip array from raw chip and export
+            mask = cv2.imread(flist[i])
+            mask = mask[:,:,0].reshape(arr_pred.shape)
+            arr_pred = np.ma.masked_array(arr_pred, np.logical_not(mask)).filled(0)
             cv2.imwrite(out_dir,arr_pred)
-            #Image.fromarray(arr_pred.astype('uint8')).save(out_dir)
+            arr_pred = None
+
         else:
             arr_pred = (predicted_array[i]>.3)*255
             arr_pred = np.squeeze(arr_pred,axis=2)
             Image.fromarray(arr_pred.astype('uint8')).save(out_dir) #fix for speed
+            arr_pred = None
         #print("Created " +str(out_fn) + " to ../pred folder")
 
         #Get geoinfo of original image chip

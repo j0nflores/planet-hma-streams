@@ -9,20 +9,9 @@ import os
 import cv2
 import glob
 import numpy as np
-from master.utils.chips import *
 from master.models import *
 from master.postprocess import *
-
-def main():
-    #Set prediction folder
-    pred_fold = './pred/raw_planet_folder'
-    out_fold = os.path.dirname(pred_fold) #"./pred"
-    chips_fold = out_fold+'/chips'
-
-    #Preprocess and predict images
-    batch_chips(out_fold,pred_fold)
-    pred_multi(chips_fold,out_fold)
-    os.rmdir(chips_fold)
+from master.utils.chips import *
 
 def chiparray(img_chip_path):
     _image = []
@@ -61,7 +50,22 @@ def pred_multi(chips_folder,output_folder):
         #Run merge
         merge_masks(tmp_path,output_folder,chips_path[i])
         shutil.rmtree(chips_path[i])
+    os.rmdir(chips_folder)
 
 if __name__ == "__main__":
 
-    main()
+    #setup directories
+    pred_fold = './pred/batch1/raw' #'./pred/new'
+    out_fold = os.path.dirname(pred_fold) #"./pred"
+    chips_fold = out_fold+'/chips'
+
+    #Preprocess image and extract chips
+    batch_chips(out_fold,pred_fold)
+    
+    #predict chips, transform and mosaic to full scene
+    pred_multi(chips_fold,out_fold)
+    
+    #remove copied raw image folder
+    shutil.rmtree(pred_fold)
+    
+    

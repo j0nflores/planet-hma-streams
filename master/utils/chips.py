@@ -78,7 +78,7 @@ def main_catch():
 
 def batch_chips(outdir,img_folder_path):
     path_files = glob.glob(img_folder_path+"/*.tif")
-    path_files = [x for x in path_files if x[-6:] == 'SR.tif']
+    path_files = [x for x in path_files if x[-11:] == 'SR_clip.tif'] #x[-6:] == 'SR.tif'
             
     with mp.Pool(mp.cpu_count()) as p:
         # Use starmap to pass multiple arguments to the function
@@ -116,7 +116,7 @@ def class_chips(args):
     msk = create_mask(src)
     write_tif(out_8bits,equalize_hist(scaled,msk),src)
     #print(f"\tConverted {str(fn)} in  {round((time.time() - start_time),1)} sec") 
-    chip_img(out_8bits,512,use_nan=False)
+    chip_img(out_8bits,512,use_nan=True)
     #except:
         #pass
 
