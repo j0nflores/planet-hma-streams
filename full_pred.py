@@ -22,50 +22,59 @@ def chiparray(img_chip_path):
                 
     #Convert list to array       
     _image = np.array(_image).astype('float32')/255
-    #_image = normalize(_image, axis=1)
     return _image
 
-def pred_multi(chips_folder,output_folder):
-
+def pred_multi(output_folder):
+    
+    chips_folder = f'{out_fold}/chips' 
     chips_path = sorted(glob.glob(os.path.join(chips_folder,"*")))
-    #print(chips_path)
+    print(f'\nNumber of chips folder to predict: {len(chips_path)}')
 
-    #Run prediction 
+    #Run cv prediction 
     results = []
     for i in range(len(chips_path)):
-        pred = chiparray(chips_path[i])
+        with tf.device('/CPU:0'):
+            pred_arr = chiparray(chips_path[i])
         #print(pred.shape)
         model = load_model('./log/cv_mul/cv_multi.hdf5')
-        predx = model.predict(pred)#,1,verbose=1)
-        results.append(predx)
-
-    #Batch reproject and merge the predicted chips into Planet scene
-    tmp_path = f'./{output_folder}/tmp_pred'
+        pred_cv = model.predict(pred_arr)#,1,verbose=1)
+        results.append(pred_cv)
     
-    
-    for i in range(len(chips_path)):
-        #Run projection of masks and save to a temporary folder
-        proj_pred(chips_path[i],results[i],tmp_path,multi=True)
+        #clear memory space
+        pred_arr = None
+        pred_cv = None
 
-        #Run merge
-        merge_masks(tmp_path,output_folder,chips_path[i])
-        shutil.rmtree(chips_path[i])
+    #Project and merge the predicted chips into Planet scene
+    #run projection of masks and save to a temporary folder
+    with tf.device('/CPU:0'):
+        tmp_path = f'./{output_folder}/tmp_pred'
+        for i in range(len(chips_path)):
+            proj_pred(chips_path[i],results[i],tmp_path,multi=True)
+
+            #Run merge
+            merge_masks(tmp_path,output_folder,chips_path[i])
+            shutil.rmtree(chips_path[i])
+        
+    #cleanup chips folder
     os.rmdir(chips_folder)
+
 
 if __name__ == "__main__":
 
-    #setup directories
-    pred_fold = './pred/batch1/raw' #'./pred/new'
-    out_fold = os.path.dirname(pred_fold) #"./pred"
-    chips_fold = out_fold+'/chips'
+    #input folder containing raw planet SR scenes
+    #make sure that this folder only contains SR tif files
+    pred_fold = './data/pred/raw_planet' 
+
+    #output folder for predicted scenes
+    out_fold = './pred_out'
+    os.makedirs(out_fold,exist_ok=True)
 
     #Preprocess image and extract chips
     batch_chips(out_fold,pred_fold)
     
     #predict chips, transform and mosaic to full scene
-    pred_multi(chips_fold,out_fold)
+    #use GPU for faster large-scale processing
+    pred_multi(out_fold)
     
-    #remove copied raw image folder
-    shutil.rmtree(pred_fold)
     
     

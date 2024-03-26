@@ -9,4 +9,8 @@
 
 #folders
 .ipynb_checkpoints/
+dev/
+
+#keep
+!demo.ipynb
 
