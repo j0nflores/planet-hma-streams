@@ -59,9 +59,17 @@ Some illustration of mapping results between the classification methods from the
 
 ### Multi-tile mapping within a PlanetScope strip in HMA using computer vision. 
 
-For full classification of raw PlanetScope imagery, run *./master/utils/img_pred.py*. 
+For full classification of raw PlanetScope imagery, run *./full_pred.py*. 
 
 This will preprocess tha raw image and identify water pixels using a pre-trained cv model for HMA (under *./log/cv_mul/cv_multi.hdf5*) 
 
 ![alt text](./docs/pred_grid.jpg "Grid")
 
+
+### Reference
+
+To read more about this work or if you use this repository and find it helpful, please read/cite the article:
+
+Flores, J. A., Gleason, C. J., Brinkerhoff, C. B., Harlan, M. E., Lummus, M. M., Stearns, L. A., & Feng, D. (2024). Mapping proglacial headwater streams in High Mountain Asia using PlanetScope imagery. *Remote Sensing of Environment, 306*, 114124. https://doi.org/10.1016/j.rse.2024.114124
+
+If you have any questions or suggestions about this repo, please contact jflores@umass.edu.
