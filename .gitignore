@@ -10,7 +10,10 @@
 #folders
 .ipynb_checkpoints/
 dev/
+data/
+log/
 
 #keep
-!demo.ipynb
+!full_demo.ipynb
+!train_demo.ipynb
 

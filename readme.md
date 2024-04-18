@@ -1,4 +1,4 @@
-## Mapping proglacial in HMA with Planet imagery
+## Mapping proglacial streams in HMA with Planet imagery
 
 
 The objective is to classify small proglacial stream in High Mountain Asia (HMA) using high-resolution Planet imagery. Raw images are preprocessed from 16-bit to 8-bit false color channels (nir,r,g,b) and are sliced into 512×512 chips before placing into the image segmentation/classification methods. Postprocessing of classified chips include merging of tiles to return the same geospatial information from the raw Planet imagery. 
@@ -27,7 +27,7 @@ Use the labeled chips generated from annotation tools such as [PixelAnnotationTo
 
 ```
 data
-└───planet
+└───train
 │   └───imgs
 │   │   │   chip1.tif
 │   │   │   chip2.tif
@@ -63,9 +63,9 @@ Some illustration of mapping results between the classification methods from the
 
 For full classification of raw PlanetScope imagery, run *full_pred.py*. 
 
-This will preprocess tha raw PlanetScope images inside the *pred/raw_planet* folder and identify water pixels using a pre-trained cv model for HMA (under *./log/cv_mul/cv_multi.hdf5*). See the referece below for more info about the cv model.
+This will preprocess tha raw PlanetScope images inside the *./pred/raw_planet* folder and identify water pixels using a pre-trained cv model for HMA (under *./log/cv_mul/cv_multi.hdf5*). See the referece below for more info about the cv model.
 
-By default, this will create a *./pred_out* folder where it will write the water mask ouputs from the cv model.
+By default, this will create a *./pred_out* folder where it will write the water mask outputs from the cv model.
 
 ```
 data

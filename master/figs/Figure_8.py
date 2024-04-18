@@ -27,6 +27,7 @@ masks_path = './data/planet/masks/'
 #Set configs
 k_class = 'binary'
 rand = 6
+f = 9/1000**2 #3x3m2 to km2 conversion
 
 #Preprocess dataset
 start_train = time.time()
@@ -49,8 +50,7 @@ cv = load_model('./model/cv/cv_6.hdf5')
 cv_pred = cv.predict(X_test)
 cv_pred = np.argmax(cv_pred,axis=3)
 
-#Get surface area
-f = 9/1000**2 #3x3m2 to km2
+#Surface area
 obs = [np.count_nonzero(y_test[i])*f for i in range(len(y_test))]
 pred_simple = [np.count_nonzero(simple_pred[i])*f for i in range(len(simple_pred))]
 pred_otsu = [np.count_nonzero(otsu_pred[i])*f for i in range(len(otsu_pred))]

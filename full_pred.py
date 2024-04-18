@@ -1,7 +1,6 @@
-# Implement water classification of Planet images (multiclass)
+# Implement water classification for PlanetScope SR imagery
 #
-# @JAFlores, 11.2021 
-# 
+# @JAFlores
 # (c)Fluvial@UMass-HiMAT Project
 
 
@@ -12,17 +11,6 @@ import numpy as np
 from master.models import *
 from master.postprocess import *
 from master.utils.chips import *
-
-def chiparray(img_chip_path):
-    _image = []
-    for img_path in sorted(glob.glob(os.path.join(img_chip_path, "*.tif"))):
-        with rasterio.open(img_path,'r') as f:
-                imgr = np.moveaxis(f.read(),0,-1)
-                _image.append(imgr)
-                
-    #Convert list to array       
-    _image = np.array(_image).astype('float32')/255
-    return _image
 
 def pred_multi(output_folder):
     
@@ -61,7 +49,7 @@ def pred_multi(output_folder):
 
 if __name__ == "__main__":
 
-    #input folder containing raw planet SR scenes
+    #input folder containing raw planet SR scenes (4-band)
     #make sure that this folder only contains SR tif files
     pred_fold = './data/pred/raw_planet' 
 

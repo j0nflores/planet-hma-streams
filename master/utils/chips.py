@@ -187,6 +187,17 @@ def chip_rivs(fold_chips,path_rivlines):
                 os.remove(path_chips)
     print("Finished filtering chips")
 
+def chiparray(img_chip_path):
+    _image = []
+    for img_path in sorted(glob.glob(os.path.join(img_chip_path, "*.tif"))):
+        with rasterio.open(img_path,'r') as f:
+                imgr = np.moveaxis(f.read(),0,-1)
+                _image.append(imgr)
+                
+    #Convert list to array       
+    _image = np.array(_image).astype('float32')/255
+    return _image
+
 def main():
     main_st = time.time()
     img_fold = "./data/planet/20202021/PSScene4Band"

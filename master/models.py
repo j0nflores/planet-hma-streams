@@ -152,7 +152,7 @@ def cv_load(run,model):
     tf.keras.backend.clear_session()
     strategy = tf.distribute.MirroredStrategy()
     with strategy.scope():
-        #model = load_model(f'/work/jflores_umass_edu/hma/log/{run_name}/{modeln}/{modeln}.hdf5')
+
         model = load_model(f'./log/{run}/{model}.hdf5')
-        #model = load_model(f'/work/jflores_umass_edu/hma2/log/#old_3k_runs/{run_name}/{modeln}.hdf5')
+
     return model
