@@ -1,10 +1,10 @@
 # Planet Imagery Workflow
 
-There are three main steps in the workflow: **lookup**, **order**, and **download**.
+This workflow has three main steps: **lookup**, **order**, and **download**.
 
-> **Important:** The Planet API enforces rate limits and quota usage. Avoid excessive parallelization.  
-> The **lookup** and **order** steps are run serially.  
-> The **download** step is configured for SLURM parallel runs; use a modest level of parallelism (recommended: ~4–5 concurrent tasks) to avoid throttling and failed requests.
+> **Note:** The Planet API has rate limits and quota usage.  
+> The **lookup** and **order** steps can be run serially.  
+> The **download** step is set up for SLURM parallel runs. Use a small number of parallel tasks (about 4–5) to avoid throttling.
 
 ---
 
@@ -12,67 +12,38 @@ There are three main steps in the workflow: **lookup**, **order**, and **downloa
 
 Queries the Planet API for all available imagery intersecting each feature in the input shapefile over the specified time period.
 
-- **Input:** Shapefile features + time window  
-- **Output:** One `.npy` metadata file per unique feature (saved to the lookup path)
-- **Purpose:** Identifies all candidate scenes before placing any orders
-- **Note:** This step does **not** consume quota. It only retrieves metadata.
+- **Input:** Shapefile features and time window  
+- **Output:** One `.npy` metadata file per feature (saved to the lookup path)  
+- **Purpose:** Identifies all candidate scenes before placing any orders  
+- **Note:** This step does **not** use quota. It only retrieves metadata.
 
 ---
 
 ## 2) `planet_order.py --order`
 
-Uses the `.npy` files produced in the lookup step to place orders for all available images.
+Uses the `.npy` files from the lookup step to place orders for all available images.
 
 - **Input:** Lookup `.npy` files  
-- **Output:** One `.json` file per feature containing the Planet download URLs (saved to the order path)
-- **Important:** This step **consumes Planet quota** when orders are submitted, not when downloaded.
-- **Tip:** If rerunning, ensure you are not re-ordering the same scenes unnecessarily.
+- **Output:** One `.json` file per feature containing Planet download URLs (saved to the order path)  
+- **Note:** This step **uses Planet quota** when orders are submitted.
 
 ---
 
 ## 3) `planet_order.py --download`
 
-Downloads imagery using the URLs generated in the order step.
+Downloads imagery using the URLs created in the order step.
 
-- **Prerequisite:** Confirm orders are complete by running `check_order_status.py` before downloading.
-- **Execution:** Run as SLURM array jobs with ~4–5 parallel tasks to balance throughput and avoid API throttling.
-- **Output:** Image files saved per feature ID in the download directory.
-- **Note:** Downloads can take a significant amount of time depending on volume and network conditions.
+- **Before downloading:** Make sure orders are complete by running: check_order_status.py
+- **Execution:** Run as SLURM array jobs with ~4–5 parallel tasks  
+- **Output:** Images saved per feature ID in the download directory  
+- **Note:** Downloads may take time depending on volume and network speed.
 
 ---
 
-# Planet API Notes & Best Practices
+## Notes
 
-### Rate Limits
-- Planet limits the number of simultaneous requests per user/IP.
-- Too many parallel downloads can result in:
-  - HTTP 429 errors (Too Many Requests)
-  - Slower transfer speeds
-  - Temporary throttling
-- Recommended:
-  - 4–5 concurrent SLURM tasks
-  - Avoid launching large arrays all at once
-
-### Quota Usage
-- Quota is consumed at the **order stage**, not during lookup or download.
-- Re-running the order step can double-charge quota if not careful.
-- Always verify what has already been ordered before submitting new orders.
-
-### Order Completion
-- Orders are asynchronous and may take time to process.
-- Always run: check_order_status.py
-
-before downloading.
-- Download will fail if orders are not yet ready.
-
-### Retry Safety
-- The download script is designed to skip files that already exist.
-- If a job crashes, it can safely be restarted without re-downloading completed scenes.
-
-### Parallelization Strategy
-- Lookup: serial is sufficient  
-- Order: serial recommended (quota-sensitive step)  
-- Download: parallelize moderately (network-bound)
-
-### Storage Considerations
-- Planet imagery can be large; ensure sufficient disk space before ordering/downloading.
+- **Rate limits:** Too many parallel downloads can slow things down or cause failed requests. A small number of parallel jobs (4–5) works well.
+- **Quota usage:** Quota is used during the **order** step, not during lookup or download.
+- **Order completion:** Orders are processed asynchronously. Always check status before downloading.
+- **Restarting downloads:** The download step skips files that already exist, so it is safe to rerun if interrupted.
+- **Storage:** Planet imagery can be large. Make sure there is enough disk space before ordering and downloading.
