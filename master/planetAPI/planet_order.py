@@ -13,16 +13,13 @@ import json
 import sys
 import pathlib
 import numpy as np
-from planet import api 
-from requests.auth import HTTPBasicAuth
-import numpy as np
 import argparse
-import geopandas as gpd
+from shapely.geometry import shape, Polygon, mapping
 from config import *
 
 def authenticate_order():
     try:
-        PLANET_API_KEY = 'planet-api-key' # place your Planet api key
+        PLANET_API_KEY = API_KEY #Planet api key
         
     except Exception:
         print("Failed to get Planet Key: Try planet init or install Planet Command line tool")
@@ -211,7 +208,7 @@ if __name__ == "__main__":
 
                     #imgs to download
                     ids = sorted(list(set(ids)-set(imgs_done)))
-                    print(f'\nOrdering images: riv {feature}, imgs: {len(ids)}')
+                    print(f'\nOrdering images: feature {feature}, imgs: {len(ids)}')
 
                     #batch per Planet order suggestion (450img/batch)
                     if len(ids) > 450:
@@ -242,7 +239,7 @@ if __name__ == "__main__":
                     print(f'Orders complete. Time elapsed: {(time.time()-start)/60:.2f} min\n')
                 
                 except: 
-                    print(f'\t bad lookup/order: {feature}\n')
+                   print(f'\t bad lookup/order: {feature}\n')
                     
             else: 
                 print('Aldready done.')

@@ -21,14 +21,14 @@ from config import *
     
 def authenticate():
     try:
-        PLANET_API_KEY = 'planet-api-key' # place your Planet api key
+        PLANET_API_KEY = API_KEY #Planet api key
     except Exception as e:
         print("Failed to get Planet Key: Try planet init or install Planet Command line tool")
         sys.exit()
 
     payload = json.dumps({
-        "email": "planet-account-email", #place your Planet account email address
-        "password": "planet-password" #place your Planet account password
+        "email": planet_email, # Planet account email address
+        "password": planet_password #Planet account password
     })
 
     headers = {'Content-Type': 'application/json'}
@@ -63,12 +63,11 @@ def search_payload(geom):
     date_range_filter = {
       "type": "DateRangeFilter",
       "field_name": "acquired",
-      "config": {"gte": "2023-01-01T00:00:00.000Z",
-                 "lte": "2023-01-03T00:00:00.000Z"}
+      "config": {"gte": "2015-01-01T00:00:00.000Z",
+                 "lte": "2025-12-31T00:00:00.000Z"}
     }
 
-    '''
-    clear_conf_filter = {
+    '''clear_conf_filter = {
       "type": "RangeFilter",
       "field_name": "clear_confidence_percent",
       "config": {
@@ -96,7 +95,7 @@ def search_payload(geom):
       "type": "RangeFilter",
       "field_name": "cloud_cover",
       "config": {
-        "lte": 0.3
+        "lte": 0.1
       }
     }
     
@@ -146,7 +145,7 @@ def search_payload(geom):
     combined_filter = {
       "type": "AndFilter",
       "config": [geometry_filter,
-                 date_range_filter, #clear_conf_filter,clear_filter, vis_filter,\
+                 date_range_filter, #clear_conf_filter,clear_filter, vis_filter,
                  cloud_cover_filter,
                  hhaze_filter,
                  lhaze_filter,
@@ -253,21 +252,21 @@ if __name__ == "__main__":
     #check lookup folder files if existing
     done = [int(os.path.basename(x)[:-4]) for x in glob.glob(lookup_path+"/*.npy")]
 
-    for idx in np.arange(0, 2): # n_features):
+    for idx in np.arange(0, n_features):
 
         #get reach geojson for Planet API
         riv_geom = get_json(shp, fid = idx)
         
         #get imgs infos from planet api to order
         if riv_geom['fid'] not in done:
-            try:
-                id_master, feat, good_geom = [],[],{}
-                ft_iterate(riv_geom['bounds']['coordinates'][0])
-                good_geom[riv_geom['fid']] = {v['id']:v for v in feat} 
-                good_geom['bounds'] = riv_geom['bounds']
-                print(f'\tFeature ID {riv_geom["fid"]}: good images: {len(feat)}')
-            except:
-                print(f'\tFeature ID {riv_geom["fid"]}: error')
+            #try:
+            id_master, feat, good_geom = [],[],{}
+            ft_iterate(riv_geom['bounds']['coordinates'][0])
+            good_geom[riv_geom['fid']] = {v['id']:v for v in feat} 
+            good_geom['bounds'] = riv_geom['bounds']
+            print(f'\tFeature ID {riv_geom["fid"]}: good images: {len(feat)}')
+            #except:
+                #print(f'\tFeature ID {riv_geom["fid"]}: error')
             
             export_reachimgs(lookup_path,riv_geom['fid'],good_geom)        
             

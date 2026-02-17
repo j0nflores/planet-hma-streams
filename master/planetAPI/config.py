@@ -1,3 +1,8 @@
+#PlanetAPI auth
+API_KEY = 'planet-api-key' # place your Planet API key
+planet_email = 'email' #place your Planet email
+planet_password = 'password' #place your Planet password
+
 #run name
 run = 'test'
 
