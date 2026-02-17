@@ -6,6 +6,16 @@ This workflow has three main steps: **lookup**, **order**, and **download**.
 > The **lookup** and **order** steps can be run serially.  
 > The **download** step is set up for SLURM parallel runs. Use a small number of parallel tasks (about 4–5) to avoid throttling.
 
+## Setup (`config.py`)
+
+Before running the workflow, update `config.py` to define the run name and paths:
+
+- **run**: Label for the current processing run. Changing this creates a new output folder.
+- **shp_path**: Path to the input shapefile. Each feature will be processed separately.
+- **lookup_path**: Directory where .npy metadata files from the lookup step will be saved.
+- **order_path**: Directory where .json order URL files will be saved.
+- **download_path**: Directory where downloaded imagery will be stored.
+
 ---
 
 ## 1) `planet_lookup.py`
@@ -40,7 +50,7 @@ Downloads imagery using the URLs created in the order step.
 
 ---
 
-## Notes
+## Notes and Tips
 
 - **Rate limits:** Too many parallel downloads can slow things down or cause failed requests. A small number of parallel jobs (4–5) works well.
 - **Quota usage:** Quota is used during the **order** step, not during lookup or download.
