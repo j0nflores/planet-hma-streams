@@ -225,12 +225,12 @@ if __name__ == "__main__":
 
                             #initiate order
                             print(f'\nBatch {batch}, imgs: {len(ids_order)}')
-                            #order_urls.append(order_url(feature,ids_order,bounds,batch))
+                            order_urls.append(order_url(feature,ids_order,bounds,batch))
 
                     #no batching needed
                     elif (len(ids) < 450) & (len(ids) >= 1):
                         print(f'\tOrder imgs: {len(ids)}')
-                        #order_urls = [order_url(feature,ids,bounds)]
+                        order_urls = [order_url(feature,ids,bounds)]
 
                     elif len(ids) == 0:
                         print('\tno image to order')
