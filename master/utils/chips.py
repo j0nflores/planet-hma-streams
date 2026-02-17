@@ -53,7 +53,7 @@ def class_chips(args):
     msk = create_mask(src)
     write_tif(out_8bits,equalize_hist(scaled,msk),src)
     #print(f"\tConverted {str(fn)} in  {round((time.time() - start_time),1)} sec") 
-    chip_img(out_8bits,512,use_nan=True)
+    #chip_img(out_8bits,512,use_nan=True)
 
 
 def conv_8bits(img_path):

@@ -1,24 +1,32 @@
 # Order and download planet images based on API image query results
 # 
-# MEHarlan, JAFlores --- updated 04-30-2022
+# Updates:
+# 04-30-2022 - batch downloading, functionized 
+# 11-13-2022 - updated for PSScene4band asset deprecation 
+# 03-12-2023 - modified for parallel run per unit feature
 
 import os
+import glob
 import time
 import requests
 import json
 import sys
 import pathlib
+import numpy as np
 from planet import api 
 from requests.auth import HTTPBasicAuth
 import numpy as np
 import argparse
+import geopandas as gpd
+from config import *
 
 def authenticate_order():
     try:
-        PLANET_API_KEY = api.auth.find_api_key() 
-    except Exception as e:
+        PLANET_API_KEY = 'planet-api-key' # place your Planet api key
+        
+    except Exception:
         print("Failed to get Planet Key: Try planet init or install Planet Command line tool")
-        sys.exit()
+        sys.exit(1)
 
     headers = {'Content-Type': 'application/json'}
 
@@ -45,6 +53,7 @@ def order_now(order_payload):
     else:
         print(f'Failed with Exception code : {response.status_code}')
 
+
 def download_results(order_url,folder, overwrite=False):
     r = requests.get(order_url, auth=(PLANET_API_KEY, ""))
     if r.status_code ==200:
@@ -58,7 +67,7 @@ def download_results(order_url,folder, overwrite=False):
             path = pathlib.Path(os.path.join(folder,name))
 
             if overwrite or not path.exists():
-                print('downloading {} to {}'.format(name, path))
+                print('downloading {}'.format(name))
                 r = requests.get(url, allow_redirects=True)
                 path.parent.mkdir(parents=True, exist_ok=True)
                 open(path, 'wb').write(r.content)
@@ -67,58 +76,93 @@ def download_results(order_url,folder, overwrite=False):
     else:
         print(f'Failed with response {r.status_code}')
     
-def get_all_ids(imglist):
-    seasons = ['fall','spring','summer']
-    all_unq_img = []
-    for seas in seasons:
-        unq_img = list(set(list(imglist[seas].values())))
-        all_unq_img.append(unq_img)
-    all_unq_img = [x for y in all_unq_img for x in y]
-    return all_unq_img
-
-def batch_ids(id_list,batch_size=450):
-    batch = []
-    for i in range(round(len(id_list)/batch_size)):
-        if i == 0:
-            batch.append(id_list[i:batch_size])
-        else:
-            batch.append(id_list[batch_size*i:batch_size*i+batch_size])
-    return batch
-
-def order_batch(batch_ids):
-    print(f'Ordering images .......')
-    order_urls = []
-    for i, idlist in enumerate(batch_ids):
-        payload = {
-        "name": f'batch_{i}', # change order name to whatever you would like (name is not unique)
-        "order_type":"partial", #allows for an order to complete even if few items fail
-            "notifications":{
-            "email": False
-        },
-        "products":[  
-            {  
-                "item_ids": idlist,
-                "item_type":"PSScene4Band",
-                "product_bundle":"analytic_sr"
+def order_url(feature_id,ids,json_bound,batchid=0):
+    payload = {
+    "name": f'{feature_id}_{batchid}', # order name (any)
+    "order_type":"partial", #allows for an order to complete even if few items fail
+        "notifications":{
+        "email": False
+    },
+    "products":[{  
+            "item_ids": ids,
+            "item_type":"PSScene",
+            "product_bundle":"analytic_sr_udm2"
+        }],
+    "tools": [{
+            "clip": {
+                "aoi": json_bound
             }
-            ],
-        }
-        order_urls.append(order_now(payload))
+        }]
+    }
+    return order_now(payload)
     
-    out = "./planetAPI/outputs/order_urls"
-    os.makedirs(out,exist_ok=True)
-    np.save(f'{out}/urls.npy',order_urls)
-    return order_urls
+    
+def riv_lookup(lookup_folder, feature):
+    riv = f'{lookup_folder}/{feature}.npy'
+    file = np.load(riv,allow_pickle=True).tolist()
+    imlist = []
+    for key in file.keys():
+        if key != 'bounds':
+            imlist.append(list(file[key].keys()))
+    imlist = [x for y in imlist for x in y]
+
+    riv_bounds = file['bounds']
+    vertices_count = len(riv_bounds['coordinates'][0])
+    if vertices_count > 500:
+        riv_bounds = simplify_bounds(riv_bounds)
+    return {'imids': sorted(imlist) , 'bounds': riv_bounds}
+
+
+def simplify_bounds(polygon_dict, target_vertices=450, preserve_topology=True):
+    """
+    Simplify a polygon to approximately the target number of vertices.
+    
+    Planet OrderAPI requires <500 vertices
+    https://docs.planet.com/platform/integrations/qgis/planet-qgis-plugin/#search-for-imagery
+    """
+
+    poly = shape(polygon_dict)
+    if not isinstance(poly, Polygon):
+        raise ValueError("Input geometry must be a single Polygon.")
+
+    def vertex_count(p):
+        return max(0, len(p.exterior.coords) - 1)
+
+    orig_count = vertex_count(poly)
+    if target_vertices >= orig_count:
+        return polygon_dict, 0.0
+
+    low, high = 0.0, 1e-6
+    while vertex_count(poly.simplify(high, preserve_topology=preserve_topology)) > target_vertices and high < 1.0:
+        high *= 2
+
+    for _ in range(50):
+        mid = (low + high) / 2
+        simplified = poly.simplify(mid, preserve_topology=preserve_topology)
+        count = vertex_count(simplified)
+
+        if count > target_vertices:
+            low = mid
+        else:
+            high = mid
+
+    simplified = poly.simplify(high, preserve_topology=preserve_topology)
+    return mapping(simplified)
+
+def imgs_downloaded(im_path,comid):
+    fold = f'{im_path}/{comid}'
+    batch = glob.glob(fold+'/*')
+    batch = [os.path.basename(x) for x in batch]
+    all = []
+    for dl_fold in batch:
+        path = f"{fold}/{dl_fold}/PSScene"
+        imgs = glob.glob(path+"/*.tif")
+        imgs = [x for x in imgs if x[-11:] == 'SR_clip.tif']
+        all.append(imgs)
+    return [os.path.basename(x)[:-26] for y in all for x in y]
     
 
-def download_batch(outdir, url_list):
-    print('Downloading images.......')
-    for i, url in enumerate(url_list):
-        if url != None:
-            download_results(url,folder=outdir) 
-        print(f'\tCompleted batch {i}.......')
     
-
 if __name__ == "__main__":
 
     ap = argparse.ArgumentParser()
@@ -127,35 +171,118 @@ if __name__ == "__main__":
     ap.add_argument("-d", "--download", action='store_true',
         help="download planet images, please check order status if 'success' ")
     args = vars(ap.parse_args())
+    
+    # Authenticate API
+    PLANET_API_KEY, headers, response = authenticate_order()
+    
+    if args["order"]:    
 
-    if args["order"]:
-        
-        # Authenticate API
-        PLANET_API_KEY, headers, response = authenticate_order()
-        
-        # Start order
+        #start order, serial for api
         start = time.time()
-        ids_path = "./planetAPI/outputs/reach_img.npy"
-        imglist =  np.load(ids_path, allow_pickle = True).tolist()
-        all_ids = get_all_ids(imglist)
-        all_ids = all_ids[2:] #already ordered 0,1 as test
-        batch_list = batch_ids(all_ids)
-        batch_urls = order_batch(batch_list)
-        print(f'Order complete. Time elapsed: {(time.time()-start)/60:.2f} min')
 
-    if args["download"]:
-        
-        # Authenticate API
-        PLANET_API_KEY, headers, response = authenticate_order()
-        
+        #check output order url directory if existing
+        os.makedirs(order_path,exist_ok=True)
+        urls = glob.glob(order_path+"/*.json")
+        order_done = [int(os.path.basename(x)[:-5]) for x in urls ]
+
+        #list feature id
+        feature_ids = [int(os.path.basename(x)[:-4]) for x in glob.glob(f'{lookup_path}/*.npy')]
+                                                                  
+        #list features not ordered yet 
+        left = list(set(feature_ids)-set(order_done))
+        print('Not done: ',len(left))
+
+        #run for reach ids 
+        for feature in left:
+
+            #double checks if done ordering
+            if feature not in order_done:
+                
+                try:
+
+                    #gather feature api lookup info
+                    riv_info = riv_lookup(lookup_path,feature)
+                    bounds = riv_info['bounds']
+                    ids = riv_info['imids']#[0:1]
+                    
+                    #check list of imgs already downloaded for reach id
+                    imgs_path = f'{download_path}'
+                    imgs_done = imgs_downloaded(imgs_path, feature)
+
+                    #imgs to download
+                    ids = sorted(list(set(ids)-set(imgs_done)))
+                    print(f'\nOrdering images: riv {feature}, imgs: {len(ids)}')
+
+                    #batch per Planet order suggestion (450img/batch)
+                    if len(ids) > 450:
+
+                        order_urls = []
+                        nbatch = int(np.ceil(len(ids)/450))
+
+                        for batch in range(nbatch):
+
+                            ids_order = ids[batch*450:450*(batch+1)]
+
+                            #initiate order
+                            print(f'\nBatch {batch}, imgs: {len(ids_order)}')
+                            #order_urls.append(order_url(feature,ids_order,bounds,batch))
+
+                    #no batching needed
+                    elif (len(ids) < 450) & (len(ids) >= 1):
+                        print(f'\tOrder imgs: {len(ids)}')
+                        #order_urls = [order_url(feature,ids,bounds)]
+
+                    elif len(ids) == 0:
+                        print('\tno image to order')
+
+                    #export order url list
+                    with open(f'{order_path}/{feature}.json','w') as f:
+                        json.dump(order_urls,f)
+                        order_urls = None
+                    print(f'Orders complete. Time elapsed: {(time.time()-start)/60:.2f} min\n')
+                
+                except: 
+                    print(f'\t bad lookup/order: {feature}\n')
+                    
+            else: 
+                print('Aldready done.')
+
+
+    elif args["download"]:
+
         # Start download
         start = time.time()
-        urls_path = './planetAPI/outputs/order_urls/urls.npy'
-        outpath = r'./data/planet/20202021/'
-        batch_urls =  np.load(urls_path, allow_pickle = True).tolist()
-        download_batch(outpath,batch_urls)
-        print(f'Download complete. Time elapsed: {(time.time()-start)/60:.2f} min')
+        
+        # Slurm array run for parallel downloading, 4-5 only due to Planet rate limiting
+        slurm = int(os.environ['SLURM_ARRAY_TASK_ID']) 
+    
+        #check order folder and get feature ids to run
+        feature_ids = [int(os.path.basename(x)[:-5]) for x in sorted(glob.glob(order_path+"/*.json"))]
+        feature = feature_ids[slurm]
+        
+        #setup output folder
+        print(f'\nDownloading images: riv {feature}...')
+        download_path = f'{download_path}/{feature}'
+        os.makedirs(download_path,exist_ok=True)
 
-    else:
-        print('Select action: "--order" or "--download"')
+        #get order urls from input path
+        urlp = f'{order_path}/{feature}.json'
+        with open(urlp,'r') as f:
+            urls =  json.load(f)
+            url_dc = {}
+            for url in urls:
+                url_dc[url[45:]] = url
 
+        #check already done urls in output path
+        dl_done = [os.path.basename(x) for x in glob.glob(download_path+"/*")]
+
+        #gather urls not yet downloaded
+        left = list(set(list(url_dc.keys()))-set(dl_done))
+
+        if len(left)>0:
+            for i,link in enumerate(left):
+                download_results(url_dc[link],download_path)
+                print(f'\tDownloaded batch {i}. Time elapsed: {(time.time()-start)/60:.2f} min\n')
+
+        else:
+            print('\tAlready done.')

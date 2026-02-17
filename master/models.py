@@ -130,7 +130,7 @@ def monitor_unet(num_class):
             Recall(name='recall'),
             AUC(name='auc'),
             AUC(name='prc', curve='PR'), 
-            BinaryIoU(target_class_ids=[1],threshold=0.20) 
+            x ],threshold=0.20) 
         ]
     elif num_class > 1:
         metrics = ['acc',
